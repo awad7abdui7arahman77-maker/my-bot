@@ -45,7 +45,7 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-API_TOKEN = '8686242492:AAFPUbb-xm1XkZih9TRLesi-U-Su6vFETiA'
+API_TOKEN = '8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8'
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
@@ -53,7 +53,7 @@ OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
 
-BOT_USERNAME = "aaabbbcccmaskedtetris_bot"
+BOT_USERNAME = "Awad_7744_bot"
 BOT_DIRECT_URL = f"https://t.me/{BOT_USERNAME}"
 
 try:
