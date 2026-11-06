@@ -45,7 +45,6 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-# التوكن في سطر واحد متصل بدون أي مسافات أو فواصل لمنع خطأ 401
 API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
@@ -53,7 +52,6 @@ DEVELOPER_URL = "https://t.me/awad3210"
 OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
-
 BOT_USERNAME = "Awad_7744_bot"
 
 try:
@@ -78,7 +76,7 @@ waiting_for_promo = {}
 
 ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
 
-# القنوات المطلوبة للاشتراك الإجباري
+# القنوات الستة المطلوبة للاشتراك الإجباري
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -91,43 +89,19 @@ SUBSCRIPTION_LINKS = [
 SERVICES_DATA = {
     "whatsapp": {"name": "WhatsApp", "icon": "💬"},
     "telegram": {"name": "Telegram", "icon": "✈️"},
-    "facebook": {"name": "Facebook", "icon": "👤"},
-    "instagram": {"name": "Instagram", "icon": "📸"},
-    "tiktok": {"name": "TikTok", "icon": "🎵"},
-    "imo": {"name": "IMO", "icon": "💬"},
-    "turbo": {"name": "⚡ سحبة صاروخية (3 أرقام)", "icon": "🚀"},
-    "tempmail": {"name": "Temp Mail & SMS 🌟", "icon": "🌐"}
+    "turbo": {"name": "⚡ سحبة صاروخية (3 أرقام)", "icon": "🚀"}
 }
 
 SERVICES_COUNTRIES = {
     "whatsapp": {
         "bolivia": {"name": "Bolivia 🇧🇴", "code": "591", "slug": "bolivia", "len": 8, "prefixes": ["7", "6"]},
         "germany": {"name": "Germany 🇩🇪", "code": "49", "slug": "germany", "len": 10, "prefixes": ["15", "16", "17"]},
-        "ethiopia": {"name": "Ethiopia 🇪🇹", "code": "251", "slug": "ethiopia", "len": 9, "prefixes": ["91", "92", "93"]},
         "kuwait": {"name": "Kuwait 🇰🇼", "code": "965", "slug": "kuwait", "len": 8, "prefixes": ["5", "6", "9"]},
-        "lebanon": {"name": "Lebanon 🇱🇧", "code": "961", "slug": "lebanon", "len": 8, "prefixes": ["3", "70", "71"]},
         "yemen": {"name": "Yemen 🇾🇪", "code": "967", "slug": "yemen", "len": 9, "prefixes": ["77", "73", "71", "78"]}
     },
     "telegram": {
         "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "202", "415"]},
-        "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "11", "12"]},
-        "syria": {"name": "Syria 🇸🇾", "code": "963", "slug": "syria", "len": 9, "prefixes": ["98", "99"]}
-    },
-    "facebook": {
-        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["415", "212"]},
-        "morocco": {"name": "Morocco 🇲🇦", "code": "212", "slug": "morocco", "len": 9, "prefixes": ["6", "7"]}
-    },
-    "instagram": {
-        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["213", "323"]},
-        "iraq": {"name": "Iraq 🇮🇶", "code": "964", "slug": "iraq", "len": 10, "prefixes": ["77", "78"]}
-    },
-    "tiktok": {
-        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["501", "502"]},
-        "algeria": {"name": "Algeria 🇩🇿", "code": "213", "slug": "algeria", "len": 9, "prefixes": ["5", "6", "7"]}
-    },
-    "imo": {
-        "yemen": {"name": "Yemen 🇾🇪", "code": "967", "slug": "yemen", "len": 9, "prefixes": ["77", "73"]},
-        "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "11"]}
+        "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "11", "12"]}
     },
     "turbo": {
         "global_turbo": {"name": "⚡ سحبة صاروخية لـ 3 أرقام", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "415"]}
@@ -224,7 +198,7 @@ def scrape_source(url, code):
     return nums
 
 def get_country_numbers_count(c_data):
-    return random.randint(2500, 32000)
+    return random.randint(3000, 25000)
 
 def get_real_live_number(c_data):
     code = c_data["code"]
@@ -233,12 +207,11 @@ def get_real_live_number(c_data):
         f"https://receive-smss.com/free-sms-numbers/{code}",
         f"https://anonymsms.com/country/{slug}",
         f"https://sms24.me/en/countries/{slug}",
-        f"https://online-sms.org/en/countries/{slug}",
-        f"https://receive-smss.live/country/{slug}"
+        f"https://online-sms.org/en/countries/{slug}"
     ]
     scraped_numbers = []
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(scrape_source, url, code) for url in sources]
             for future in concurrent.futures.as_completed(futures):
                 res = future.result()
@@ -270,7 +243,6 @@ def fetch_real_otp_sms(phone_num):
         f"https://receive-smss.com/sms/{phone_num}/",
         f"https://online-sms.org/sms/{phone_num}",
         f"https://sms24.me/en/numbers/{phone_num}",
-        f"https://receive-smss.live/sms/{phone_num}/",
         f"https://anonymsms.com/number/{phone_num}/"
     ]
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
@@ -280,7 +252,7 @@ def fetch_real_otp_sms(phone_num):
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html.parser')
                 text_content = soup.get_text()
-                match = re.search(r'(?:WhatsApp|Telegram|Facebook|Instagram|TikTok|IMO|code|كود|واتساب).*?(\d{3}[\s-]?\d{3})', text_content, re.IGNORECASE)
+                match = re.search(r'(?:WhatsApp|Telegram|code|كود|واتساب).*?(\d{3}[\s-]?\d{3})', text_content, re.IGNORECASE)
                 if match:
                     return match.group(1).replace("-", "").replace(" ", "")
                 all_six_digits = re.findall(r'\b\d{6}\b', text_content)
@@ -326,12 +298,7 @@ def main_reply_keyboard():
     markup.add(
         KeyboardButton("🌐 الأقسام والتطبيقات"),
         KeyboardButton("⚡ سحبة صاروخية (3 أرقام)"),
-        KeyboardButton("🎁 هدية اليوم 💰"),
-        KeyboardButton("📊 سجل أرقامي"),
         KeyboardButton("🔍 بحث يدوي عن كود"),
-        KeyboardButton("🎁 نقاطي ورابط الإحالة"),
-        KeyboardButton("🎫 إدخال كود هدية"),
-        KeyboardButton("📢 مشاركة البوت"),
         KeyboardButton("👨‍💻 تواصل مع المطور"),
         KeyboardButton("⚙️ لوحة المطور")
     )
@@ -341,9 +308,7 @@ def get_services_only_keyboard():
     markup = InlineKeyboardMarkup(row_width=2)
     buttons = []
     for s_key, s_data in SERVICES_DATA.items():
-        if s_key == "tempmail":
-            buttons.append(InlineKeyboardButton(f"{s_data['icon']} {s_data['name']}", callback_data="get_temp_service"))
-        elif s_key == "turbo":
+        if s_key == "turbo":
             buttons.append(InlineKeyboardButton(f"{s_data['icon']} {s_data['name']}", callback_data="get_turbo_numbers"))
         else:
             buttons.append(InlineKeyboardButton(f"{s_data['icon']} {s_data['name']}", callback_data=f"show_countries_{s_key}"))
@@ -364,7 +329,7 @@ def get_countries_for_service_keyboard(service_key):
 
 def send_welcome(chat_id, user_id):
     points = user_points.get(user_id, 10)
-    msg = f"مرحباً بك يا أواّد في بوت الأرقام الخارق (الإصدار الأسطوري v1000.0)! 👋\n⭐ رصيدك الحالي: `{points}` نقاط\nاختر القسم أو التطبيق المراد تفعيله من القائمة بالأسفل:"
+    msg = f"مرحباً بك يا أواّد في بوت الأرقام الخارق ⚡\n⭐ رصيدك الحالي: `{points}` نقاط\nاختر القسم أو التطبيق المراد تفعيله من القائمة بالأسفل:"
     bot.send_message(chat_id, msg, reply_markup=main_reply_keyboard(), parse_mode="Markdown")
     bot.send_message(chat_id, "💬 Available Countries:", reply_markup=get_services_only_keyboard())
 
@@ -391,7 +356,7 @@ def verify_sub_cb(call):
     else:
         bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في جميع القنوات والجروب أولاً!", show_alert=True)
 
-@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🎁 هدية اليوم 💰", "📊 سجل أرقامي", "🔍 بحث يدوي عن كود", "🎁 نقاطي ورابط الإحالة", "🎫 إدخال كود هدية", "📢 مشاركة البوت", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
+@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔍 بحث يدوي عن كود", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
 def handle_menu_buttons(message):
     user_id = message.from_user.id
     if is_banned(user_id): return
@@ -405,11 +370,6 @@ def handle_menu_buttons(message):
     if txt == "🌐 الأقسام والتطبيقات":
         bot.send_message(message.chat.id, "💬 Available Countries:", reply_markup=get_services_only_keyboard())
     elif txt == "⚡ سحبة صاروخية (3 أرقام)":
-        points = user_points.get(user_id, 10)
-        if points < 15:
-            return bot.send_message(message.chat.id, "❌ **تحتاج إلى 15 نقطة لاستخدام السحبة الصاروخية لثلاثة أرقام!**", parse_mode="Markdown")
-        user_points[user_id] = points - 15
-        
         bot.send_message(message.chat.id, "🚀 **جاري سحب 3 أرقام صاروخية دفعة واحدة... انتظر لحظة!**", parse_mode="Markdown")
         turbo_countries = list(SERVICES_COUNTRIES["whatsapp"].values())
         chosen_country = random.choice(turbo_countries)
@@ -425,9 +385,7 @@ def handle_menu_buttons(message):
         markup = InlineKeyboardMarkup(row_width=1)
         for num in numbers_list:
             copy_url = f"https://t.me/share/url?url=+{num}"
-            markup.add(
-                InlineKeyboardButton(f"💬 📋 {chosen_country['name']} +{num}", url=copy_url)
-            )
+            markup.add(InlineKeyboardButton(f"💬 📋 {chosen_country['name']} +{num}", url=copy_url))
         
         markup.add(InlineKeyboardButton("🗑️ Remove CC", callback_data="remove_cc"))
         markup.add(InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_whatsapp_{chosen_country['slug']}"))
@@ -438,52 +396,12 @@ def handle_menu_buttons(message):
         for num in numbers_list:
             Thread(target=background_auto_otp_checker, args=(message.chat.id, num, "WhatsApp", chosen_country['name'], "whatsapp", chosen_country['slug']), daemon=True).start()
 
-    elif txt == "🎁 هدية اليوم 💰":
-        now = time.time()
-        last_time = user_last_bonus.get(user_id, 0)
-        if (now - last_time) < 86400:
-            remaining = int(86400 - (now - last_time))
-            hours = remaining // 3600
-            minutes = (remaining % 3600) // 60
-            bot.send_message(message.chat.id, f"⏳ **لقد استلمت هدفتك اليومية مسبقاً!**\nيرجى الانتظار `{hours}` ساعة و `{minutes}` دقيقة لطلب الهدية التالية.", parse_mode="Markdown")
-        else:
-            gift = random.randint(5, 20)
-            user_points[user_id] = user_points.get(user_id, 10) + gift
-            user_last_bonus[user_id] = now
-            bot.send_message(message.chat.id, f"🎉 **مبارك لك يا أواّد!**\nلقد حصلت على هدفتك اليومية بقيمة `{gift}` نقاط مجانية! 🎁", parse_mode="Markdown")
-    elif txt == "📊 سجل أرقامي":
-        history = user_history.get(user_id, [])
-        if not history:
-            bot.send_message(message.chat.id, "📂 **ليس لديك أي أرقام مسجلة في السجل حتى الآن.**", parse_mode="Markdown")
-        else:
-            msg = "📂 **آخر أرقام سحبتها:**\n\n"
-            for idx, num in enumerate(history, 1):
-                msg += f"{idx} - `+{num}`\n"
-            bot.send_message(message.chat.id, msg, parse_mode="Markdown")
     elif txt == "🔍 بحث يدوي عن كود":
         waiting_for_manual_number[user_id] = True
         bot.send_message(message.chat.id, "🔍 **أرسل الآن رقم الهاتف كاملاً (بدون علامة +) للبحث عن كود التفعيل الخاص به:**", parse_mode="Markdown")
-    elif txt == "🎁 نقاطي ورابط الإحالة":
-        points = user_points.get(user_id, 10)
-        ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
-        msg = (
-            f"🎁 **نظام النقاط والإحالة الخاص بك:**\n\n"
-            f"⭐ نقاطك الحالية: `{points}` نقطة\n"
-            f"🔗 **رابط الإحالة الخاص بك:**\n`{ref_link}`\n\n"
-            f"💡 *شارك الرابط مع أصدقائك واكسب 15 نقطة عن كل شخص يزور البوت!*"
-        )
-        bot.send_message(message.chat.id, msg, parse_mode="Markdown")
-    elif txt == "🎫 إدخال كود هدية":
-        waiting_for_promo[user_id] = True
-        bot.send_message(message.chat.id, "🎫 **أرسل الآن كود الهدية لشحن نقاطك فوراً:**", parse_mode="Markdown")
-    elif txt == "📢 مشاركة البوت":
-        bot_info = bot.get_me()
-        share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}&text=اشترك%20في%20أفضل%20بوت%20أرقام!⚡"
-        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 إرسال رابط البوت", url=share_url))
-        bot.send_message(message.chat.id, "📢 **شارك البوت مع أصدقائك:**", reply_markup=markup, parse_mode="Markdown")
     elif txt == "👨‍💻 تواصل مع المطور":
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
-        bot.send_message(message.chat.id, "💬 **للتواصل مع المطور:**", reply_markup=markup, parse_mode="Markdown")
+        bot.send_message(message.chat.id, "💬 **للتواصل المباشر مع المطور (@awad3210):**", reply_markup=markup, parse_mode="Markdown")
     elif txt == "⚙️ لوحة المطور":
         if user_id not in SUB_ADMINS: return
         total_users = get_users_count()
@@ -502,16 +420,12 @@ def smart_ai_chat_support(message):
         return process_manual_search(message)
     if waiting_for_broadcast.get(user_id, False):
         return process_broadcast(message)
-    if waiting_for_promo.get(user_id, False):
-        return process_promo_code(message)
         
     text = message.text.lower()
-    if "نقطة" in text or "نقاط" in text or "كيف" in text:
-        bot.reply_to(message, "💡 **لزيادة نقاطك مجاناً:** توجه إلى قسم (🎁 نقاطي ورابط الإحالة) وشارك رابطك مع أصدقائك، أو استخدم أكواد الهدايا اليومية!")
-    elif "كود" in text or "ما وصل" in text or "مشكلة" in text:
-        bot.reply_to(message, "⚡ **تأكد من الآتي:**\n1. أن الرقم تم طلبه حديثاً ولم تنتهِ مهلة الـ 5 دقائق.\n2. استخدام ميزة (🔍 بحث يدوي عن كود) لإلزام البوت بفحص الرسائل فوراً.")
+    if "كود" in text or "ما وصل" in text:
+        bot.reply_to(message, "⚡ **تأكد من طلب الرقم حديثاً، واستخدام ميزة (🔍 بحث يدوي عن كود) لفحص الرسائل فوراً.**")
     else:
-        bot.reply_to(message, "🤖 أهلاً بك يا أواّد أو صديقي العزيز! استخدم الأزرار بالأسفل لتصفح الأقسام وسحب الأرقام بكل سهولة 🚀")
+        bot.reply_to(message, "🤖 أهلاً بك يا أواّد! استخدم الأزرار بالأسفل لتصفح الأقسام وسحب الأرقام بكل سهولة 🚀")
 
 @bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast")
 def admin_broadcast_cb(call):
@@ -541,21 +455,6 @@ def process_broadcast(message):
                 pass
     bot.send_message(message.chat.id, f"✅ **تم إرسال الإذاعة بنجاح إلى `{success}` مستخدماً!**", parse_mode="Markdown")
 
-def process_promo_code(message):
-    user_id = message.from_user.id
-    waiting_for_promo[user_id] = False
-    code = message.text.strip()
-    if code in ACTIVE_PROMO_CODES:
-        if user_id not in used_promo_codes:
-            reward = ACTIVE_PROMO_CODES[code]
-            user_points[user_id] = user_points.get(user_id, 0) + reward
-            used_promo_codes.add(user_id)
-            bot.send_message(message.chat.id, f"🎉 **مبروك! تم شحن الكود بنجاح وإضافة `{reward}` نقطة إلى رصيدك!**", parse_mode="Markdown")
-        else:
-            bot.send_message(message.chat.id, "❌ **عذراً، لقد استخدمت كود هدية مسبقاً.**", parse_mode="Markdown")
-    else:
-        bot.send_message(message.chat.id, "❌ **الكود غير صحيح أو منتهي الصلاحية!**", parse_mode="Markdown")
-
 def process_manual_search(message):
     user_id = message.from_user.id
     waiting_for_manual_number[user_id] = False
@@ -566,13 +465,6 @@ def process_manual_search(message):
         bot.send_message(message.chat.id, f"🎉 **تم العثور على الكود بنجاح!**\n📞 الرقم: `+{phone_clean}`\n🔑 الكود: `{otp}`", parse_mode="Markdown")
     else:
         bot.send_message(message.chat.id, f"❌ **لم يتم استلام كود بعد للرقم `+{phone_clean}`.**", parse_mode="Markdown")
-
-@bot.callback_query_handler(func=lambda call: call.data == "get_temp_service")
-def get_temp_service_cb(call):
-    temp_mail = f"user_{random.randint(1000,9999)}@tempmail.com"
-    msg = f"🌟 **قسم الأرقام والإيميلات المؤقتة السريعة:**\n\n📧 إيميلك الوهمي المؤقت: `{temp_mail}`\n📥 (جاهز لتلقي الرسائل والتفعيلات السريعة)"
-    markup = InlineKeyboardMarkup().add(InlineKeyboardButton("⬅️ Back", callback_data="show_all_services"))
-    bot.send_message(call.message.chat.id, msg, reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data == "show_all_services")
 def show_all_services_cb(call):
@@ -613,7 +505,7 @@ def get_multi_numbers_cb(call):
     service_info = SERVICES_DATA.get(service_key, {"name": "التطبيق", "icon": "💬"})
     country_info = SERVICES_COUNTRIES.get(service_key, {}).get(country_key, {"name": "الدولة", "code": "967", "slug": "yemen", "len": 9, "prefixes": ["77"]})
     
-    bot.answer_callback_query(call.id, "⚡ جاري سحب الأرقام بنجاح...")
+    bot.answer_callback_query(call.id, "⚡ جاري سحب الأرقام الحقيقية المضمونة...")
     
     numbers_list = []
     for _ in range(3):
@@ -628,9 +520,7 @@ def get_multi_numbers_cb(call):
     markup = InlineKeyboardMarkup(row_width=1)
     for num in numbers_list:
         copy_url = f"https://t.me/share/url?url=+{num}"
-        markup.add(
-            InlineKeyboardButton(f"💬 📋 {country_info['name']} +{num}", url=copy_url)
-        )
+        markup.add(InlineKeyboardButton(f"💬 📋 {country_info['name']} +{num}", url=copy_url))
     
     markup.add(InlineKeyboardButton("🗑️ Remove CC", callback_data="remove_cc"))
     markup.add(InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_{service_key}_{country_key}"))
