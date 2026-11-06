@@ -74,7 +74,7 @@ waiting_for_manual_number = {}
 waiting_for_broadcast = {}
 waiting_for_promo = {}
 
-# قنواتك الـ 5 الرسمية والحقيقية فقط (تم حذف القناة الوهمية نهائياً)
+# قنواتك الخمس الرسمية الحقيقية فقط
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -376,16 +376,20 @@ def handle_menu_buttons(message):
             if user_id not in user_history: user_history[user_id] = []
             user_history[user_id].insert(0, num)
             
-        header_text = f"💬 {chosen_country['name']} WhatsApp Number:\n⏳ Waiting for OTP..."
+        header_text = f"select an option below:"
+        
+        # تصميم الأزرار تماماً مثل الصورة الاحترافية الثانية
         markup = InlineKeyboardMarkup(row_width=1)
         for num in numbers_list:
             copy_url = f"https://t.me/share/url?url=+{num}"
-            markup.add(InlineKeyboardButton(f"💬 📋 {chosen_country['name']} +{num}", url=copy_url))
+            markup.add(InlineKeyboardButton(f"{chosen_country['name']} 📋 +{num}", url=copy_url))
         
-        markup.add(InlineKeyboardButton("🗑️ Remove CC", callback_data="remove_cc"))
-        markup.add(InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_whatsapp_{chosen_country['slug']}"))
-        markup.add(InlineKeyboardButton("🌐 Change Country", callback_data="show_all_services"))
-        markup.add(InlineKeyboardButton("🔑 Get OTP", callback_data="get_otp_manual_check"))
+        markup.add(
+            InlineKeyboardButton("🌐 Change Country", callback_data="show_all_services"),
+            InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_whatsapp_{chosen_country['slug']}")
+        )
+        markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
+        markup.add(InlineKeyboardButton("✉️ OTP Group", url="https://t.me/Awad_Numbers_Bot"))
 
         bot.send_message(message.chat.id, header_text, reply_markup=markup, parse_mode="Markdown")
         for num in numbers_list:
@@ -510,17 +514,19 @@ def get_multi_numbers_cb(call):
         user_history[user_id].insert(0, full_num)
         if len(user_history[user_id]) > 5: user_history[user_id].pop()
 
-    header_text = f"💬 {country_info['name']} {service_info['name']} Number:\n⏳ Waiting for OTP..."
+    header_text = f"select an option below:"
     
     markup = InlineKeyboardMarkup(row_width=1)
     for num in numbers_list:
         copy_url = f"https://t.me/share/url?url=+{num}"
-        markup.add(InlineKeyboardButton(f"💬 📋 {country_info['name']} +{num}", url=copy_url))
+        markup.add(InlineKeyboardButton(f"{country_info['name']} 📋 +{num}", url=copy_url))
     
-    markup.add(InlineKeyboardButton("🗑️ Remove CC", callback_data="remove_cc"))
-    markup.add(InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_{service_key}_{country_key}"))
-    markup.add(InlineKeyboardButton("🌐 Change Country", callback_data=f"show_countries_{service_key}"))
-    markup.add(InlineKeyboardButton("🔑 Get OTP", callback_data="get_otp_manual_check"))
+    markup.add(
+        InlineKeyboardButton("🌐 Change Country", callback_data=f"show_countries_{service_key}"),
+        InlineKeyboardButton("🔄 Change Number", callback_data=f"get_multi_num_{service_key}_{country_key}")
+    )
+    markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
+    markup.add(InlineKeyboardButton("✉️ OTP Group", url="https://t.me/Awad_Numbers_Bot"))
     
     try:
         if call.message:
