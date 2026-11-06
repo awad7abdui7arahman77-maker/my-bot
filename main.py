@@ -78,7 +78,7 @@ waiting_for_promo = {}
 
 ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
 
-# تم إبقاء قناتك الرسمية فقط وحذف جميع القنوات الوهمية والأخرى نهائياً
+# القناة الرسمية الوحيدة المتبقية (تم حذف كل القنوات الوهمية)
 CHANNELS_DATA = [
     {"username": "@Awad_Numbers_Bot", "name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot"}
 ]
@@ -201,7 +201,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     markup = InlineKeyboardMarkup(row_width=1)
     for ch in unsub_list:
         markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
-    markup.add(InlineKeyboardButton("✨ تم الاشتراك في قنواتنا، دخول البوت ✅", callback_data="check_sub"))
+    markup.add(InlineKeyboardButton("✨ تم الاشتراك في قناتنا، دخول البوت ✅", callback_data="check_sub"))
     
     msg = (
         "⚠️ **عذراً يا صديقي!**\n\n"
