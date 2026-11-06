@@ -78,7 +78,7 @@ waiting_for_promo = {}
 
 ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
 
-# القناة الرسمية الوحيدة المتبقية (تم حذف كل القنوات الوهمية)
+# القناة الرسمية الوحيدة المعتمدة (تم مسح قناة A_ToolsX وجميع القنوات الوهمية نهائياً)
 CHANNELS_DATA = [
     {"username": "@Awad_Numbers_Bot", "name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot"}
 ]
