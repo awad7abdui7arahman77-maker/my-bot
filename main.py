@@ -462,7 +462,7 @@ def get_single_number_cb(call):
     )
     markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
     markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
-    ه
+    
     try:
         bot.edit_message_text(number_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
     except Exception:
