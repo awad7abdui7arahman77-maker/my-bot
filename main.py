@@ -69,7 +69,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنواتك الخمس الحقيقية والرسمية فقط
+# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي أثر للقناة القديمة)
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -168,6 +168,7 @@ def rate_limit_check(user_id, seconds=2):
     user_last_action[user_id] = now
     return False
 
+# نظام التخزين الداخلي الواسع والسريع للأرقام مسبقاً
 def background_warehouse_filler():
     while True:
         try:
@@ -255,6 +256,7 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 pass
             break
 
+# القائمة النظيفة المختصرة تماماً كما طلبت
 def main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -460,7 +462,7 @@ def get_single_number_cb(call):
     )
     markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
     markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
-    
+    ه
     try:
         bot.edit_message_text(number_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
     except Exception:
