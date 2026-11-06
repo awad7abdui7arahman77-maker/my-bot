@@ -45,7 +45,8 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-API_TOKEN = '8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8'
+# التوكن في سطر واحد متصل بدون أي مسافات أو فواصل لمنع خطأ 401
+API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
@@ -77,7 +78,7 @@ waiting_for_promo = {}
 
 ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
 
-# القنوات المطلوبة حصرياً للاشتراك الإجباري
+# القنوات المطلوبة للاشتراك الإجباري
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -168,14 +169,12 @@ def get_unsubscribed_channels(user_id):
     if user_id in SUB_ADMINS: return []
     unsubscribed = []
     for ch in SUBSCRIPTION_LINKS:
-        # إذا كانت القناة تحتوي على يوزر معرف عام، نتحقق من الاشتراك
         if ch["username"].startswith("@"):
             try:
                 status = bot.get_chat_member(ch["username"], user_id).status
                 if status in ['left', 'kicked']:
                     unsubscribed.append(ch)
             except Exception:
-                # إذا حصل استثناء للجروب أو القناة، نعتبره غير مشترك لتجاوز أي خطأ تقني
                 unsubscribed.append(ch)
         else:
             unsubscribed.append(ch)
