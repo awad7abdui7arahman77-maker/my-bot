@@ -69,7 +69,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنوات الاشتراك الإجباري (تم حذف قناة A_ToolsX نهائياً بناءً على طلبك)
+# قنواتك الخمس الحقيقية والرسمية فقط
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -156,7 +156,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     
     msg = (
         "⚠️ **عذراً يا صديقي!**\n\n"
-        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في القنوات المطلوبة أولاً:**"
+        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في قنواتنا الخمس الرسمية أولاً:**"
     )
     bot.send_message(chat_id, msg, reply_markup=markup, parse_mode="Markdown")
 
@@ -315,7 +315,7 @@ def verify_sub_cb(call):
         except Exception: pass
         send_welcome(call.message.chat.id, user_id)
     else:
-        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في القنوات أولاً!", show_alert=True)
+        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في القنوات الخمس أولاً!", show_alert=True)
 
 @bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور"])
 def handle_menu_buttons(message):
