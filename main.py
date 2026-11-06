@@ -74,16 +74,13 @@ waiting_for_manual_number = {}
 waiting_for_broadcast = {}
 waiting_for_promo = {}
 
-ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
-
-# القنوات الستة المطلوبة للاشتراك الإجباري
+# قنواتك الـ 5 الرسمية والحقيقية فقط (تم حذف القناة الوهمية نهائياً)
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
     {"name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx", "username": "@jzbznznx"},
     {"name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210", "username": "@breakthroughawad210"},
-    {"name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw", "username": "@sn6hdbdn19dndw"},
-    {"name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+ohwA2pwywVxhOTVk", "username": "@ohwA2pwywVxhOTVk"}
+    {"name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw", "username": "@sn6hdbdn19dndw"}
 ]
 
 SERVICES_DATA = {
@@ -122,8 +119,6 @@ def save_user(user_id, referrer_id=None):
         with open("users.txt", "a") as f:
             f.write(f"{user_id}\n")
         user_points[user_id] = user_points.get(user_id, 0) + 10  
-        if referrer_id and str(referrer_id) in users_list and int(referrer_id) != user_id:
-            user_points[int(referrer_id)] = user_points.get(int(referrer_id), 0) + 15 
         try:
             bot.send_message(ADMIN_ID, f"🔔 **مستخدم جديد انضم للبوت!**\n🆔 المعرف: `{user_id}`", parse_mode="Markdown")
         except Exception:
@@ -166,7 +161,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     
     msg = (
         "⚠️ **عذراً يا صديقي!**\n\n"
-        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في القنوات والجروب أدناه أولاً:**"
+        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في قنواتنا الخمس الرسمية أولاً:**"
     )
     bot.send_message(chat_id, msg, reply_markup=markup, parse_mode="Markdown")
 
@@ -354,7 +349,7 @@ def verify_sub_cb(call):
         except Exception: pass
         send_welcome(call.message.chat.id, user_id)
     else:
-        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في جميع القنوات والجروب أولاً!", show_alert=True)
+        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في القنوات الخمس أولاً!", show_alert=True)
 
 @bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔍 بحث يدوي عن كود", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
 def handle_menu_buttons(message):
