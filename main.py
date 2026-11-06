@@ -45,14 +45,14 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
+API_TOKEN = "9057414594:AAHt3zo-Z7P2Fb9S9Kxa8ZMKb6eUC8V6XV4"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
 OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
-BOT_USERNAME = "Awad_7744_bot"
+BOT_USERNAME = "ADSD_74_bot"
 
 try:
     bot.remove_webhook()
