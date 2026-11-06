@@ -5,7 +5,6 @@ import re
 import random
 import codecs
 from threading import Thread
-import concurrent.futures  
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 import requests
@@ -54,6 +53,7 @@ OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 bot = telebot.TeleBot(API_TOKEN)
 BOT_USERNAME = "ADSD_74_bot"
 
+# مسح أي ويب هوك قديم وإيقاف التعارض فوراً
 try:
     bot.remove_webhook()
 except Exception:
@@ -69,7 +69,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي أثر للقناة القديمة)
+# قنواتك الخمس الحقيقية والرسمية فقط
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -99,7 +99,7 @@ SERVICES_COUNTRIES = {
         "germany": {"name": "Germany 🇩🇪", "code": "49", "slug": "germany", "len": 10, "prefixes": ["15", "16"]}
     },
     "turbo": {
-        "global_turbo": {"name": "⚡ سحبة صاروخية لـ 3 أرقام", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "415"]}
+        "global_turbo": {"name": "⚡ سحبة صاروخية لـ 3 أرقام", "code": "1", "slug": "united-states", "len": 201, "prefixes": ["201", "415"]}
     }
 }
 
@@ -168,7 +168,6 @@ def rate_limit_check(user_id, seconds=2):
     user_last_action[user_id] = now
     return False
 
-# نظام التخزين الداخلي الواسع والسريع للأرقام مسبقاً
 def background_warehouse_filler():
     while True:
         try:
@@ -256,7 +255,6 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 pass
             break
 
-# القائمة النظيفة المختصرة تماماً كما طلبت
 def main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -485,8 +483,5 @@ def copy_code_cb(call):
 
 if __name__ == "__main__":
     keep_alive()
-    while True:
-        try:
-            bot.infinity_polling(timeout=20, long_polling_timeout=10)
-        except Exception:
-            time.sleep(3)
+    # تشغيل آمن ومستقر تماماً لمنع أخطاء التداخل
+    bot.infinity_polling(skip_pending=True)
