@@ -68,6 +68,7 @@ MAINTENANCE_MODE = False
 bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
+user_referrals = {}
 
 waiting_for_manual_number = {}
 waiting_for_broadcast = {}
@@ -119,6 +120,16 @@ def save_user(user_id, referrer_id=None):
         with open("users.txt", "a") as f:
             f.write(f"{user_id}\n")
         user_points[user_id] = user_points.get(user_id, 0) + 10  
+        
+        # نظام الإحالة (إذا دخل عبر صديقه)
+        if referrer_id and referrer_id != str(user_id):
+            ref_int = int(referrer_id)
+            user_points[ref_int] = user_points.get(ref_int, 0) + 15 # يكسب نقاط مضمونة
+            try:
+                bot.send_message(ref_int, f"🎁 **مبروك! دخل صديق عبر رابط إحالتك وكسبت 15 نقطة رصيد أرقام مضمونة!** 🚀", parse_mode="Markdown")
+            except Exception:
+                pass
+
         try:
             bot.send_message(ADMIN_ID, f"🔔 **مستخدم جديد انضم للبوت!**\n🆔 المعرف: `{user_id}`", parse_mode="Markdown")
         except Exception:
@@ -290,12 +301,14 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 pass
             break
 
+# القائمة السفلية المختصرة (تم مسح إدخال كود هدية نهائياً)
 def main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         KeyboardButton("🌐 الأقسام والتطبيقات"),
         KeyboardButton("⚡ سحبة صاروخية (3 أرقام)"),
         KeyboardButton("🔍 بحث يدوي عن كود"),
+        KeyboardButton("🔗 نقاطي ورابط الإحالة"),
         KeyboardButton("👨‍💻 تواصل مع المطور"),
         KeyboardButton("⚙️ لوحة المطور")
     )
@@ -353,7 +366,7 @@ def verify_sub_cb(call):
     else:
         bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في القنوات الخمس أولاً!", show_alert=True)
 
-@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔍 بحث يدوي عن كود", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
+@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔍 بحث يدوي عن كود", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
 def handle_menu_buttons(message):
     user_id = message.from_user.id
     if is_banned(user_id): return
@@ -371,26 +384,37 @@ def handle_menu_buttons(message):
         chosen_country = random.choice(turbo_countries)
         single_num = get_real_live_number(chosen_country)
         
-        # التصميم الدقيق المطابق لصورتك الثانية
+        # التصميم الدقيق المطابق للصورة الاحترافية تماماً
         number_display_text = (
             f"🌍 **الدولة:** {chosen_country['name']}\n\n"
-            f"🔢 **الرقم:** `{single_num}`\n\n"
+            f"🔢 **الرقم:** `+{chosen_country['code']}{single_num}`\n\n"
             f"📋 **اضغط مطولاً للنسخ**"
         )
         
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("🔄 رقم جديد", callback_data=f"get_single_num_whatsapp_{chosen_country['slug']}"),
-            InlineKeyboardButton("📢 جروب الأكواد", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','_')}")
+            InlineKeyboardButton("🔄 Change Number", callback_data=f"get_single_num_whatsapp_{chosen_country['slug']}"),
+            InlineKeyboardButton("🌐 Change Country", callback_data="show_all_services")
         )
-        markup.add(InlineKeyboardButton("⬅️ رجوع للفروع", callback_data="show_all_services"))
+        markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
+        markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
 
         bot.send_message(message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
-        Thread(target=background_auto_otp_checker, args=(message.chat.id, single_num, "WhatsApp", chosen_country['name'], "whatsapp", chosen_country['slug']), daemon=True).start()
+        Thread(target=background_auto_otp_checker, args=(message.chat.id, f"{chosen_country['code']}{single_num}", "WhatsApp", chosen_country['name'], "whatsapp", chosen_country['slug']), daemon=True).start()
 
     elif txt == "🔍 بحث يدوي عن كود":
         waiting_for_manual_number[user_id] = True
         bot.send_message(message.chat.id, "🔍 **أرسل الآن رقم الهاتف كاملاً (بدون علامة +) للبحث الفوري عن كود التفعيل الخاص به:**", parse_mode="Markdown")
+    elif txt == "🔗 نقاطي ورابط الإحالة":
+        points = user_points.get(user_id, 10)
+        ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
+        msg_ref = (
+            f"🔗 **نظام دعوة الأصدقاء ونقاط الأرقام المضمونة:**\n\n"
+            f"⭐ رصيدك الحالي: `{points}` نقطة\n\n"
+            f"📌 **رابط الإحالة الخاص بك:**\n`{ref_link}`\n\n"
+            f"💡 *قم بنسخ الرابط وإرساله لأصدقائك، وكل صديق يدخل من رابطك سيكسبك نقاطاً تؤهلك للحصول على أرقام مضمونة 100% لأي برنامج تريده!* 🚀"
+        )
+        bot.send_message(message.chat.id, msg_ref, parse_mode="Markdown")
     elif txt == "👨‍💻 تواصل مع المطور":
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
         bot.send_message(message.chat.id, "💬 **للتواصل المباشر مع المطور (@awad3210):**", reply_markup=markup, parse_mode="Markdown")
@@ -503,16 +527,17 @@ def get_single_number_cb(call):
     
     number_display_text = (
         f"🌍 **الدولة:** {country_info['name']}\n\n"
-        f"🔢 **الرقم:** `{country_info['code']}{single_num}`\n\n"
+        f"🔢 **الرقم:** `+{country_info['code']}{single_num}`\n\n"
         f"📋 **اضغط مطولاً للنسخ**"
     )
     
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
-        InlineKeyboardButton("🔄 رقم جديد", callback_data=f"get_single_num_{service_key}_{country_key}"),
-        InlineKeyboardButton("📢 جروب الأكواد", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','_')}")
+        InlineKeyboardButton("🔄 Change Number", callback_data=f"get_single_num_{service_key}_{country_key}"),
+        InlineKeyboardButton("🌐 Change Country", callback_data=f"show_countries_{service_key}")
     )
-    markup.add(InlineKeyboardButton("⬅️ رجوع للفروع", callback_data=f"show_countries_{service_key}"))
+    markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
+    markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
     
     try:
         if call.message:
@@ -523,6 +548,14 @@ def get_single_number_cb(call):
         bot.send_message(call.message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
     
     Thread(target=background_auto_otp_checker, args=(call.message.chat.id, f"{country_info['code']}{single_num}", service_info['name'], country_info['name'], service_key, country_key), daemon=True).start()
+
+@bot.callback_query_handler(func=lambda call: call.data == "remove_cc")
+def remove_cc_cb(call):
+    try:
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except Exception:
+        pass
+    bot.answer_callback_query(call.id, "🗑️ تم حذف الرسالة بنجاح", show_alert=True)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("copy_code_"))
 def copy_code_cb(call):
