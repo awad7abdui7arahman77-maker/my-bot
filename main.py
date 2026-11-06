@@ -78,12 +78,9 @@ waiting_for_promo = {}
 
 ACTIVE_PROMO_CODES = {"AWAD2026": 50, "ELITE50": 30, "VIP100": 100}
 
+# تم إبقاء قناتك الرسمية فقط وحذف جميع القنوات الوهمية والأخرى نهائياً
 CHANNELS_DATA = [
-    {"username": "@Awad_Numbers_Bot", "name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot"},
-    {"username": "@v_o_lti", "name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti"},
-    {"username": "@jzbznznx", "name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx"},
-    {"username": "@breakthroughawad210", "name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210"},
-    {"username": "@sn6hdbdn19dndw", "name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw"}
+    {"username": "@Awad_Numbers_Bot", "name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot"}
 ]
 
 SERVICES_DATA = {
@@ -208,7 +205,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     
     msg = (
         "⚠️ **عذراً يا صديقي!**\n\n"
-        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في قنواتنا الرسمية أولاً:**"
+        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في قناتنا الرسمية أولاً:**"
     )
     bot.send_message(chat_id, msg, reply_markup=markup, parse_mode="Markdown")
 
@@ -408,7 +405,7 @@ def verify_sub_cb(call):
         except Exception: pass
         send_welcome(call.message.chat.id, user_id)
     else:
-        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في جميع قنواتنا أولاً!", show_alert=True)
+        bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في قناتنا الرسمية أولاً!", show_alert=True)
 
 @bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "💎 قسم الأرقام المميزة (VIP)", "🎁 هدية اليوم 💰", "📊 سجل أرقامي", "🔍 بحث يدوي عن كود", "🎁 نقاطي ورابط الإحالة", "🎫 إدخال كود هدية", "📢 مشاركة البوت", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
 def handle_menu_buttons(message):
