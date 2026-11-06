@@ -69,7 +69,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنواتك الخمس الحقيقية والرسمية فقط
+# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي قناة وهمية)
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -104,7 +104,7 @@ SERVICES_COUNTRIES = {
 }
 
 user_last_action = {}
-number_warehouse = {} # مخزن داخلي واسع لتخزين الأرقام وجلبها فوراً بدون انتظار
+number_warehouse = {}
 
 def save_user(user_id, referrer_id=None):
     if not os.path.exists("users.txt"):
@@ -156,7 +156,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     
     msg = (
         "⚠️ **عذراً يا صديقي!**\n\n"
-        "📌 **لاستخدام البوت والحصول على الأرقام الحقيقية، يجب عليك الاشتراك في قنواتنا الخمس الرسمية أولاً:**"
+        "📌 **لاستخدام البوت والحصول على الأرقام، يجب عليك الاشتراك في قنواتنا الخمس الرسمية أولاً:**"
     )
     bot.send_message(chat_id, msg, reply_markup=markup, parse_mode="Markdown")
 
@@ -168,7 +168,6 @@ def rate_limit_check(user_id, seconds=2):
     user_last_action[user_id] = now
     return False
 
-# نظام التخزين الواسع والسحب المسبق للأرقام لتسريع البوت
 def background_warehouse_filler():
     while True:
         try:
@@ -177,7 +176,7 @@ def background_warehouse_filler():
                     key = f"{s_key}_{c_key}"
                     if key not in number_warehouse:
                         number_warehouse[key] = []
-                    if len(number_warehouse[key]) < 50: # تخزين واسع حتى 50 رقم لكل دولة مسبقاً
+                    if len(number_warehouse[key]) < 50:
                         prefix = random.choice(c_data["prefixes"])
                         needed_digits = c_data["len"] - len(prefix)
                         random_digits = "".join([str(random.randint(0, 9)) for _ in range(needed_digits)])
@@ -256,7 +255,7 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 pass
             break
 
-# القائمة السفلية النظيفة (تم حذف كل الأزرار الزائدة نهائياً)
+# القائمة النظيفة المختصرة تماماً كما طلبت
 def main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
