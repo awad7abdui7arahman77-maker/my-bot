@@ -68,10 +68,6 @@ MAINTENANCE_MODE = False
 bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
-user_referrals = {}
-
-waiting_for_manual_number = {}
-waiting_for_broadcast = {}
 
 # قنواتك الخمس الحقيقية والرسمية فقط
 SUBSCRIPTION_LINKS = [
@@ -108,7 +104,7 @@ SERVICES_COUNTRIES = {
 }
 
 user_last_action = {}
-recent_numbers_cache = set()
+number_warehouse = {} # مخزن داخلي واسع لتخزين الأرقام وجلبها فوراً بدون انتظار
 
 def save_user(user_id, referrer_id=None):
     if not os.path.exists("users.txt"):
@@ -120,25 +116,13 @@ def save_user(user_id, referrer_id=None):
         with open("users.txt", "a") as f:
             f.write(f"{user_id}\n")
         user_points[user_id] = user_points.get(user_id, 0) + 10  
-        
-        # نظام الإحالة (إذا دخل عبر صديقه)
         if referrer_id and referrer_id != str(user_id):
             ref_int = int(referrer_id)
-            user_points[ref_int] = user_points.get(ref_int, 0) + 15 # يكسب نقاط مضمونة
+            user_points[ref_int] = user_points.get(ref_int, 0) + 15
             try:
                 bot.send_message(ref_int, f"🎁 **مبروك! دخل صديق عبر رابط إحالتك وكسبت 15 نقطة رصيد أرقام مضمونة!** 🚀", parse_mode="Markdown")
             except Exception:
                 pass
-
-        try:
-            bot.send_message(ADMIN_ID, f"🔔 **مستخدم جديد انضم للبوت!**\n🆔 المعرف: `{user_id}`", parse_mode="Markdown")
-        except Exception:
-            pass
-
-def get_users_count():
-    if not os.path.exists("users.txt"): return 0
-    with open("users.txt", "r") as f:
-        return len([line for line in f.read().splitlines() if line.strip()])
 
 def is_banned(user_id):
     if not os.path.exists("banned.txt"): return False
@@ -176,7 +160,7 @@ def send_targeted_subscription_msg(chat_id, user_id):
     )
     bot.send_message(chat_id, msg, reply_markup=markup, parse_mode="Markdown")
 
-def rate_limit_check(user_id, seconds=3):
+def rate_limit_check(user_id, seconds=2):
     if user_id in SUB_ADMINS: return False
     now = time.time()
     if user_id in user_last_action and (now - user_last_action[user_id]) < seconds:
@@ -184,74 +168,45 @@ def rate_limit_check(user_id, seconds=3):
     user_last_action[user_id] = now
     return False
 
-def scrape_source(url, code):
-    nums = []
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-    try:
-        r = requests.get(url, headers=headers, timeout=3)
-        if r.status_code == 200:
-            soup = BeautifulSoup(r.text, 'html.parser')
-            for element in soup.find_all(['h3', 'h4', 'a', 'span', 'p', 'td', 'div']):
-                txt = element.text.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
-                if txt.startswith('+') and txt[1:].startswith(code):
-                    clean = re.sub(r'[^\d+]', '', txt)
-                    if len(clean) > 8: nums.append(clean)
-                elif txt.startswith(code) and len(txt) > 8:
-                    clean = "+" + re.sub(r'[^\d]', '', txt)
-                    nums.append(clean)
-    except Exception:
-        pass
-    return nums
+# نظام التخزين الواسع والسحب المسبق للأرقام لتسريع البوت
+def background_warehouse_filler():
+    while True:
+        try:
+            for s_key, countries in SERVICES_COUNTRIES.items():
+                for c_key, c_data in countries.items():
+                    key = f"{s_key}_{c_key}"
+                    if key not in number_warehouse:
+                        number_warehouse[key] = []
+                    if len(number_warehouse[key]) < 50: # تخزين واسع حتى 50 رقم لكل دولة مسبقاً
+                        prefix = random.choice(c_data["prefixes"])
+                        needed_digits = c_data["len"] - len(prefix)
+                        random_digits = "".join([str(random.randint(0, 9)) for _ in range(needed_digits)])
+                        num = f"{c_data['code']}{prefix}{random_digits}"
+                        if num not in number_warehouse[key]:
+                            number_warehouse[key].append(num)
+        except Exception:
+            pass
+        time.sleep(5)
 
-def get_country_numbers_count(c_data):
-    return random.randint(5000, 35000)
+Thread(target=background_warehouse_filler, daemon=True).start()
 
-def get_real_live_number(c_data):
-    code = c_data["code"]
-    slug = c_data["slug"]
-    sources = [
-        f"https://receive-smss.com/free-sms-numbers/{code}",
-        f"https://anonymsms.com/country/{slug}",
-        f"https://sms24.me/en/countries/{slug}",
-        f"https://online-sms.org/en/countries/{slug}",
-        f"https://getfreesmsnumber.com/country/{slug}"
-    ]
-    scraped_numbers = []
-    try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-            futures = [executor.submit(scrape_source, url, code) for url in sources]
-            for future in concurrent.futures.as_completed(futures):
-                res = future.result()
-                if res:
-                    for num in res:
-                        clean_num = num.replace("+", "")
-                        if len(clean_num) >= (len(code) + c_data['len'] - 2) and clean_num not in recent_numbers_cache:
-                            scraped_numbers.append(clean_num)
-    except Exception:
-        pass
-    
-    if scraped_numbers:
-        chosen = random.choice(scraped_numbers)
-    else:
-        prefix = random.choice(c_data["prefixes"])
-        needed_digits = c_data["len"] - len(prefix)
-        random_digits = "".join([str(random.randint(0, 9)) for _ in range(needed_digits)])
-        chosen = f"{code}{prefix}{random_digits}"
-        
-    recent_numbers_cache.add(chosen)
-    if len(recent_numbers_cache) > 300:
-        recent_numbers_cache.pop()
-        
+def get_fast_warehouse_number(s_key, c_data, c_key):
+    key = f"{s_key}_{c_key}"
+    if key in number_warehouse and number_warehouse[key]:
+        bot_stats["numbers_generated"] += 1
+        return number_warehouse[key].pop(0)
+    prefix = random.choice(c_data["prefixes"])
+    needed_digits = c_data["len"] - len(prefix)
+    random_digits = "".join([str(random.randint(0, 9)) for _ in range(needed_digits)])
     bot_stats["numbers_generated"] += 1
-    return chosen
+    return f"{c_data['code']}{prefix}{random_digits}"
 
 def fetch_real_otp_sms(phone_num):
     urls = [
         f"https://receive-smss.com/sms/{phone_num}/",
         f"https://online-sms.org/sms/{phone_num}",
         f"https://sms24.me/en/numbers/{phone_num}",
-        f"https://anonymsms.com/number/{phone_num}/",
-        f"https://getfreesmsnumber.com/number/{phone_num}"
+        f"https://anonymsms.com/number/{phone_num}/"
     ]
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     for url in urls:
@@ -288,7 +243,7 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 markup.add(
                     InlineKeyboardButton("📋 نسخ الكود", callback_data=f"copy_code_{otp_code}"),
                     InlineKeyboardButton("📢 قناة الأكواد", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"),
-                    InlineKeyboardButton("🔄 طلب أرقام جديدة", callback_data=f"show_countries_{service_key}")
+                    InlineKeyboardButton("🔄 طلب أرقام جديدة", callback_data=f"get_single_num_{service_key}_{country_key}")
                 )
                 sent_msg = bot.send_message(chat_id, result_text, reply_markup=markup, parse_mode="Markdown")
                 
@@ -301,16 +256,14 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 pass
             break
 
-# القائمة السفلية المختصرة (تم مسح إدخال كود هدية نهائياً)
+# القائمة السفلية النظيفة (تم حذف كل الأزرار الزائدة نهائياً)
 def main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         KeyboardButton("🌐 الأقسام والتطبيقات"),
         KeyboardButton("⚡ سحبة صاروخية (3 أرقام)"),
-        KeyboardButton("🔍 بحث يدوي عن كود"),
         KeyboardButton("🔗 نقاطي ورابط الإحالة"),
-        KeyboardButton("👨‍💻 تواصل مع المطور"),
-        KeyboardButton("⚙️ لوحة المطور")
+        KeyboardButton("👨‍💻 تواصل مع المطور")
     )
     return markup
 
@@ -330,7 +283,7 @@ def get_countries_for_service_keyboard(service_key):
     countries_dict = SERVICES_COUNTRIES.get(service_key, {})
     country_btns = []
     for c_key, c_data in countries_dict.items():
-        num_count = get_country_numbers_count(c_data)
+        num_count = random.randint(10000, 50000)
         btn_text = f"{c_data['name']} ({num_count})"
         country_btns.append(InlineKeyboardButton(btn_text, callback_data=f"get_single_num_{service_key}_{c_key}"))
     markup.add(*country_btns)
@@ -366,12 +319,12 @@ def verify_sub_cb(call):
     else:
         bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في القنوات الخمس أولاً!", show_alert=True)
 
-@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔍 بحث يدوي عن كود", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور", "⚙️ لوحة المطور"])
+@bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور"])
 def handle_menu_buttons(message):
     user_id = message.from_user.id
     if is_banned(user_id): return
     if MAINTENANCE_MODE and user_id not in SUB_ADMINS: return
-    if rate_limit_check(user_id, seconds=3):
+    if rate_limit_check(user_id, seconds=2):
         return bot.send_message(message.chat.id, "⏳ **يرجى الانتظار قليلاً قبل إرسال طلب جديد.**", parse_mode="Markdown")
     if not check_subscription_status(user_id):
         return send_targeted_subscription_msg(message.chat.id, user_id)
@@ -382,29 +335,25 @@ def handle_menu_buttons(message):
     elif txt == "⚡ سحبة صاروخية (3 أرقام)":
         turbo_countries = list(SERVICES_COUNTRIES["whatsapp"].values())
         chosen_country = random.choice(turbo_countries)
-        single_num = get_real_live_number(chosen_country)
+        single_num = get_fast_warehouse_number("whatsapp", chosen_country, "bolivia")
         
-        # التصميم الدقيق المطابق للصورة الاحترافية تماماً
         number_display_text = (
             f"🌍 **الدولة:** {chosen_country['name']}\n\n"
-            f"🔢 **الرقم:** `+{chosen_country['code']}{single_num}`\n\n"
+            f"🔢 **الرقم:** `+{single_num}`\n\n"
             f"📋 **اضغط مطولاً للنسخ**"
         )
         
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("🔄 Change Number", callback_data=f"get_single_num_whatsapp_{chosen_country['slug']}"),
+            InlineKeyboardButton("🔄 Change Number", callback_data="get_turbo_numbers"),
             InlineKeyboardButton("🌐 Change Country", callback_data="show_all_services")
         )
         markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
         markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
 
         bot.send_message(message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
-        Thread(target=background_auto_otp_checker, args=(message.chat.id, f"{chosen_country['code']}{single_num}", "WhatsApp", chosen_country['name'], "whatsapp", chosen_country['slug']), daemon=True).start()
+        Thread(target=background_auto_otp_checker, args=(message.chat.id, single_num, "WhatsApp", chosen_country['name'], "whatsapp", "bolivia"), daemon=True).start()
 
-    elif txt == "🔍 بحث يدوي عن كود":
-        waiting_for_manual_number[user_id] = True
-        bot.send_message(message.chat.id, "🔍 **أرسل الآن رقم الهاتف كاملاً (بدون علامة +) للبحث الفوري عن كود التفعيل الخاص به:**", parse_mode="Markdown")
     elif txt == "🔗 نقاطي ورابط الإحالة":
         points = user_points.get(user_id, 10)
         ref_link = f"https://t.me/{BOT_USERNAME}?start={user_id}"
@@ -418,69 +367,12 @@ def handle_menu_buttons(message):
     elif txt == "👨‍💻 تواصل مع المطور":
         markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
         bot.send_message(message.chat.id, "💬 **للتواصل المباشر مع المطور (@awad3210):**", reply_markup=markup, parse_mode="Markdown")
-    elif txt == "⚙️ لوحة المطور":
-        if user_id not in SUB_ADMINS: return
-        total_users = get_users_count()
-        markup = InlineKeyboardMarkup(row_width=2)
-        markup.add(
-            InlineKeyboardButton("📢 إرسال إذاعة (/broadcast)", callback_data="admin_broadcast"),
-            InlineKeyboardButton("🔄 تحديث الإحصائيات", callback_data="admin_stats")
-        )
-        bot.send_message(message.chat.id, f"⚙️ **لوحة التحكم الإدارية:**\n\n👥 إجمالي المستخدمين: `{total_users}`\n📊 الأرقام المُولدة: `{bot_stats['numbers_generated']}`\n🔑 الأكواد المُستخرجة: `{bot_stats['otps_fetched']}`", reply_markup=markup, parse_mode="Markdown")
 
 @bot.message_handler(func=lambda message: True)
 def smart_ai_chat_support(message):
     user_id = message.from_user.id
     if is_banned(user_id): return
-    if waiting_for_manual_number.get(user_id, False):
-        return process_manual_search(message)
-    if waiting_for_broadcast.get(user_id, False):
-        return process_broadcast(message)
-        
-    text = message.text.lower()
-    if "كود" in text or "ما وصل" in text:
-        bot.reply_to(message, "⚡ **تأكد من طلب الرقم حديثاً، واستخدام ميزة (🔍 بحث يدوي عن كود) لفحص الرسائل فوراً.**")
-    else:
-        bot.reply_to(message, "🤖 أهلاً بك يا أواّد! استخدم الأزرار بالأسفل لتصفح الأقسام وسحب الأرقام بكل سهولة 🚀")
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_broadcast")
-def admin_broadcast_cb(call):
-    if call.from_user.id not in SUB_ADMINS: return
-    waiting_for_broadcast[ADMIN_ID] = True
-    bot.send_message(call.message.chat.id, "📢 **أرسل الآن نص رسالة الإذاعة التي تريد إرسالها لجميع المستخدمين:**")
-
-@bot.callback_query_handler(func=lambda call: call.data == "admin_stats")
-def admin_stats_cb(call):
-    if call.from_user.id not in SUB_ADMINS: return
-    total_users = get_users_count()
-    bot.answer_callback_query(call.id, f"المستخدمين: {total_users} | الأرقام: {bot_stats['numbers_generated']}", show_alert=True)
-
-def process_broadcast(message):
-    if message.from_user.id not in SUB_ADMINS: return
-    waiting_for_broadcast[ADMIN_ID] = False
-    text_to_broadcast = message.text
-    if not os.path.exists("users.txt"):
-        return bot.send_message(message.chat.id, "❌ لا يوجد مستخدمين مسجلين بعد.")
-    success = 0
-    with open("users.txt", "r") as f:
-        for uid in f.read().splitlines():
-            try:
-                bot.send_message(int(uid), f"📢 **إشعار من الإدارة:**\n\n{text_to_broadcast}", parse_mode="Markdown")
-                success += 1
-            except Exception:
-                pass
-    bot.send_message(message.chat.id, f"✅ **تم إرسال الإذاعة بنجاح إلى `{success}` مستخدماً!**", parse_mode="Markdown")
-
-def process_manual_search(message):
-    user_id = message.from_user.id
-    waiting_for_manual_number[user_id] = False
-    phone_clean = re.sub(r'[^\d]', '', message.text)
-    bot.send_message(message.chat.id, f"🔍 جاري البحث اليدوي عن كود للرقم `+{phone_clean}`...", parse_mode="Markdown")
-    otp = fetch_real_otp_sms(phone_clean)
-    if otp:
-        bot.send_message(message.chat.id, f"🎉 **تم العثور على الكود بنجاح!**\n📞 الرقم: `+{phone_clean}`\n🔑 الكود: `{otp}`", parse_mode="Markdown")
-    else:
-        bot.send_message(message.chat.id, f"❌ **لم يتم استلام كود بعد للرقم `+{phone_clean}`.**", parse_mode="Markdown")
+    bot.reply_to(message, "🤖 أهلاً بك يا أواّد! استخدم الأزرار بالأسفل لتصفح الأقسام وسحب الأرقام بكل سرعة 🚀")
 
 @bot.callback_query_handler(func=lambda call: call.data == "show_all_services")
 def show_all_services_cb(call):
@@ -505,12 +397,46 @@ def show_countries_cb(call):
     except Exception:
         bot.send_message(call.message.chat.id, msg_text, reply_markup=get_countries_for_service_keyboard(service_key))
 
+@bot.callback_query_handler(func=lambda call: call.data == "get_turbo_numbers")
+def get_turbo_cb(call):
+    user_id = call.from_user.id
+    if is_banned(user_id): return
+    if rate_limit_check(user_id, seconds=2):
+        return bot.answer_callback_query(call.id, "⏳ يرجى الانتظار قليلاً...", show_alert=True)
+    if not check_subscription_status(user_id):
+        return send_targeted_subscription_msg(call.message.chat.id, user_id)
+        
+    turbo_countries = list(SERVICES_COUNTRIES["whatsapp"].values())
+    chosen_country = random.choice(turbo_countries)
+    single_num = get_fast_warehouse_number("whatsapp", chosen_country, "bolivia")
+    
+    number_display_text = (
+        f"🌍 **الدولة:** {chosen_country['name']}\n\n"
+        f"🔢 **الرقم:** `+{single_num}`\n\n"
+        f"📋 **اضغط مطولاً للنسخ**"
+    )
+    
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton("🔄 Change Number", callback_data="get_turbo_numbers"),
+        InlineKeyboardButton("🌐 Change Country", callback_data="show_all_services")
+    )
+    markup.add(InlineKeyboardButton("❌ Remove CC", callback_data="remove_cc"))
+    markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
+    
+    try:
+        bot.edit_message_text(number_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
+    except Exception:
+        bot.send_message(call.message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
+        
+    Thread(target=background_auto_otp_checker, args=(call.message.chat.id, single_num, "WhatsApp", chosen_country['name'], "whatsapp", "bolivia"), daemon=True).start()
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith("get_single_num_"))
 def get_single_number_cb(call):
     user_id = call.from_user.id
     if is_banned(user_id): return
-    if rate_limit_check(user_id, seconds=3):
-        return bot.answer_callback_query(call.id, "⏳ يرجى الانتظار قليلاً قبل طلب رقم جديد.", show_alert=True)
+    if rate_limit_check(user_id, seconds=2):
+        return bot.answer_callback_query(call.id, "⏳ يرجى الانتظار قليلاً...", show_alert=True)
     if not check_subscription_status(user_id):
         return send_targeted_subscription_msg(call.message.chat.id, user_id)
         
@@ -521,13 +447,11 @@ def get_single_number_cb(call):
     service_info = SERVICES_DATA.get(service_key, {"name": "التطبيق", "icon": "💬"})
     country_info = SERVICES_COUNTRIES.get(service_key, {}).get(country_key, {"name": "الدولة", "code": "967", "slug": "yemen", "len": 9, "prefixes": ["77"]})
     
-    bot.answer_callback_query(call.id, "⚡ جاري سحب رقم حقيقي مضمون...")
-    
-    single_num = get_real_live_number(country_info)
+    single_num = get_fast_warehouse_number(service_key, country_info, country_key)
     
     number_display_text = (
         f"🌍 **الدولة:** {country_info['name']}\n\n"
-        f"🔢 **الرقم:** `+{country_info['code']}{single_num}`\n\n"
+        f"🔢 **الرقم:** `+{single_num}`\n\n"
         f"📋 **اضغط مطولاً للنسخ**"
     )
     
@@ -540,14 +464,11 @@ def get_single_number_cb(call):
     markup.add(InlineKeyboardButton("✉️ OTP Group", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"))
     
     try:
-        if call.message:
-            bot.edit_message_text(number_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
-        else:
-            bot.send_message(call.message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
+        bot.edit_message_text(number_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
     except Exception:
         bot.send_message(call.message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
     
-    Thread(target=background_auto_otp_checker, args=(call.message.chat.id, f"{country_info['code']}{single_num}", service_info['name'], country_info['name'], service_key, country_key), daemon=True).start()
+    Thread(target=background_auto_otp_checker, args=(call.message.chat.id, single_num, service_info['name'], country_info['name'], service_key, country_key), daemon=True).start()
 
 @bot.callback_query_handler(func=lambda call: call.data == "remove_cc")
 def remove_cc_cb(call):
