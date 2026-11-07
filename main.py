@@ -58,7 +58,7 @@ HEADERS_5SIM = {
 PROFIT_MARGIN = 0.05
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري الخاصة بك وحدك
+# قنوات الاشتراك الإجباري الخاصة بك
 CHANNELS = [
     '@Awad_Numbers_Bot', 
     '@v_o_lti', 
@@ -405,12 +405,12 @@ def handle_queries(call):
             return bot.answer_callback_query(call.id, "❌ مخصص للمطور فقط.", show_alert=True)
         bot.edit_message_text(f"⚙️ **المشتركين:** `{get_users_count()}` عضو.", call.message.chat.id, call.message.message_id, parse_mode="Markdown", reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton("🔙 عودة", callback_data="back_home")))
 
-# --- 7. RUNNER ---
+# --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
     print("Bot engine is running 24/7 safely with exception safeguards!")
     
-    # تنظيف أي Webhook قديم عالق لمنع خطأ 401 أو تضارب الاتصال
+    # تنظيف أي Webhook قديم عالق لمنع خطأ 401
     try:
         requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
     except Exception:
