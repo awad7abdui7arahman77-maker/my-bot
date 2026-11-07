@@ -424,7 +424,7 @@ def copy_code_cb(code_call):
     code = code_call.data.replace("copy_code_", "")
     bot.answer_callback_query(code_call.id, f"📋 تم نسخ الكود: {code}", show_alert=True)
 
-# --- 3. SERVER & BOT THREADING ---
+# --- 3. SERVER & BOT THREADING (FLASK IN BACKGROUND, BOT IN MAIN) ---
 app = Flask('')
 
 @app.route('/')
@@ -433,17 +433,15 @@ def home():
 
 def run_flask():
     port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
-
-def run_bot():
-    while True:
-        try:
-            bot.infinity_polling(timeout=10, long_polling_timeout=5, skip_pending=True)
-        except Exception:
-            time.sleep(3)
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 if __name__ == "__main__":
-    # تشغيل سيرفر الويب في خلفية مستقلة لضمان بقاء التطبيق نشطاً على ريلواي
+    # تشغيل سيرفر الويب في الخلفية ليظل ريلواي سعيداً
     Thread(target=run_flask, daemon=True).start()
-    # تشغيل بوت التيليجرام في الخيط الرئيسي
-    run_bot()
+    
+    # تشغيل البوت في الخيط الرئيسي ليستقبل الرسائل فوراً وبدون انقطاع
+    while True:
+        try:
+            bot.infinity_polling(timeout=20, long_polling_timeout=10, skip_pending=True)
+        except Exception as e:
+            time.sleep(3)
