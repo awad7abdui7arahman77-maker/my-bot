@@ -49,7 +49,6 @@ API_TOKEN = "9045833012:AAETb9deU-n-JM9DVbiKX-hTIe8Me7_CK6k"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
-OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
 BOT_USERNAME = "Anwid_bot"
@@ -64,7 +63,16 @@ try:
 except Exception:
     pass
 
-MAINTENANCE_MODE = False  
+# --- CHANNELS FOR FORCE SUBSCRIPTION ---
+SUBSCRIPTION_LINKS = [
+    {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "id": "@Awad_Numbers_Bot"},
+    {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "id": "@v_o_lti"},
+    {"name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx", "id": "@jzbznznx"},
+    {"name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210", "id": "@breakthroughawad210"},
+    {"name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw", "id": "@sn6hdbdn19dndw"},
+    {"name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+KhzU3jbVrVVkNWU0", "id": None} # جروب برابط دعوة خاص
+]
+
 user_points = {}
 user_last_action = {}
 recent_numbers_cache = set()
@@ -107,6 +115,28 @@ SERVICES_COUNTRIES = {
         "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "12"]}
     }
 }
+
+def check_subscription(user_id):
+    if user_id in SUB_ADMINS:
+        return True
+    for ch in SUBSCRIPTION_LINKS:
+        ch_id = ch["id"]
+        if ch_id:
+            try:
+                member = bot.get_chat_member(ch_id, user_id)
+                if member.status not in ['member', 'administrator', 'creator']:
+                    return False
+            except Exception:
+                # إذا لم يكن البوت مشرفاً في القناة، نتجاوز التحقق المؤقت أو نعتبرها غير محققة
+                pass
+    return True
+
+def force_sub_markup():
+    markup = InlineKeyboardMarkup(row_width=1)
+    for ch in SUBSCRIPTION_LINKS:
+        markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
+    markup.add(InlineKeyboardButton("✅ لقد اشتركت في القنوات", callback_data="check_sub"))
+    return markup
 
 def save_user(user_id, referrer_id=None):
     if not os.path.exists("users.txt"):
@@ -234,7 +264,7 @@ def background_auto_otp_checker(chat_id, phone_num, service_name, country_name, 
                 markup = InlineKeyboardMarkup(row_width=2)
                 markup.add(
                     InlineKeyboardButton("📋 نسخ الكود", callback_data=f"copy_code_{otp_code}"),
-                    InlineKeyboardButton("📢 قناة الأكواد", url=f"https://t.me/{OTP_CHANNEL_USERNAME.replace('@','')}"),
+                    InlineKeyboardButton("📢 القنوات", url=SUBSCRIPTION_LINKS[0]["url"]),
                     InlineKeyboardButton("🔄 طلب أرقام جديدة", callback_data=f"show_countries_{service_key}")
                 )
                 bot.send_message(chat_id, result_text, reply_markup=markup, parse_mode="Markdown")
@@ -282,6 +312,14 @@ def get_countries_for_service_keyboard(service_key):
 @bot.message_handler(commands=['start'])
 def start_cmd(message):
     user_id = message.from_user.id
+    if not check_subscription(user_id):
+        return bot.send_message(
+            message.chat.id,
+            "🚀 **عذراً، يجب عليك الاشتراك في قنوات ومجموعات المطور لتتمكن من استخدام البوت:**",
+            reply_markup=force_sub_markup(),
+            parse_mode="Markdown"
+        )
+    
     args = message.text.split()
     ref_id = args[1] if len(args) > 1 else None
     save_user(user_id, ref_id)
@@ -291,9 +329,29 @@ def start_cmd(message):
     bot.send_message(message.chat.id, msg, reply_markup=main_reply_keyboard(), parse_mode="Markdown")
     bot.send_message(message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
 
+@bot.callback_query_handler(func=lambda call: call.data == "check_sub")
+def check_sub_cb(call):
+    user_id = call.from_user.id
+    if check_subscription(user_id):
+        bot.answer_callback_query(call.id, "✅ تم التحقق من اشتراكك بنجاح!", show_alert=True)
+        try:
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+        except Exception:
+            pass
+        save_user(user_id)
+        points = user_points.get(user_id, 10)
+        msg = f"مرحباً بك يا أواّد في بوت الأرقام الخارق ⚡\n⭐ رصيدك الحالي: `{points}` نقاط\nاختر التطبيق المراد تفعيله:"
+        bot.send_message(call.message.chat.id, msg, reply_markup=main_reply_keyboard(), parse_mode="Markdown")
+        bot.send_message(call.message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
+    else:
+        bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في جميع القنوات بعد!", show_alert=True)
+
 @bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور"])
 def handle_menu_buttons(message):
     user_id = message.from_user.id
+    if not check_subscription(user_id):
+        return bot.send_message(message.chat.id, "🚀 **يجب عليك الاشتراك في القنوات أولاً لاستخدام البوت:**", reply_markup=force_sub_markup(), parse_mode="Markdown")
+
     if rate_limit_check(user_id, seconds=2):
         return bot.send_message(message.chat.id, "⏳ **يرجى الانتظار قليلاً.**", parse_mode="Markdown")
 
@@ -335,6 +393,9 @@ def handle_menu_buttons(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == "show_all_services")
 def show_all_services_cb(call):
+    user_id = call.from_user.id
+    if not check_subscription(user_id):
+        return bot.answer_callback_query(call.id, "❌ يجب الاشتراك في القنوات أولاً!", show_alert=True)
     try:
         bot.edit_message_text("💬 اختر التطبيق:", call.message.chat.id, call.message.message_id, reply_markup=get_services_only_keyboard())
     except Exception:
@@ -342,6 +403,10 @@ def show_all_services_cb(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("show_countries_"))
 def show_countries_cb(call):
+    user_id = call.from_user.id
+    if not check_subscription(user_id):
+        return bot.answer_callback_query(call.id, "❌ يجب الاشتراك في القنوات أولاً!", show_alert=True)
+    
     service_key = call.data.replace("show_countries_", "")
     service_info = SERVICES_DATA.get(service_key, {"name": "التطبيق"})
     msg_text = f"💬 الدول المتاحة لـ ({service_info['name']}):"
@@ -352,6 +417,10 @@ def show_countries_cb(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("get_single_num_"))
 def get_single_number_cb(call):
+    user_id = call.from_user.id
+    if not check_subscription(user_id):
+        return bot.answer_callback_query(call.id, "❌ يجب الاشتراك في القنوات أولاً!", show_alert=True)
+
     parts = call.data.replace("get_single_num_", "").split("_")
     service_key = parts[0]
     country_key = parts[1]
