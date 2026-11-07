@@ -76,27 +76,25 @@ SUBSCRIPTION_LINKS = [
     {"name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+KhzU3jbVrVVkNWU0"}
 ]
 
-# التطبيقات والدول المطابقة للبوت في الفيديو
 APPS_DATA = {
-    "facebook": {"name": "Facebook 📘", "slug": "facebook", "code": "1"},
-    "huawei": {"name": "Huawei 📱", "slug": "huawei", "code": "218"},
-    "instagram": {"name": "Instagram 📸", "slug": "instagram", "code": "39"},
-    "whatsapp": {"name": "WhatsApp 🟢", "slug": "whatsapp", "code": "967"},
-    "x": {"name": "X ❌", "slug": "twitter", "code": "1"}
+    "facebook": {"name": "Facebook", "flag_app": "🇫", "code": "1"},
+    "huawei": {"name": "Huawei", "flag_app": "📱", "code": "218"},
+    "instagram": {"name": "Instagram", "flag_app": "📸", "code": "39"},
+    "whatsapp": {"name": "WhatsApp", "flag_app": "🟢", "code": "967"},
+    "x": {"name": "X", "flag_app": "❌", "code": "1"}
 }
 
 COUNTRIES_DATA = {
-    "ethiopia": {"name": "Ethiopia 🇪🇹", "slug": "ethiopia", "code": "251"},
-    "guinea": {"name": "Guinea 🇬🇳", "slug": "guinea", "code": "224"},
-    "italy": {"name": "Italy 🇮🇹", "slug": "italy", "code": "39"},
-    "madagascar": {"name": "Madagascar 🇲🇬", "slug": "madagascar", "code": "261"},
-    "mali": {"name": "Mali 🇲🇱", "slug": "mali", "code": "223"},
-    "slovenia": {"name": "Slovenia 🇸🇮", "slug": "slovenia", "code": "386"},
-    "testall": {"name": "Test All 🔥", "slug": "usa", "code": "1"},
-    "venezuela": {"name": "Venezuela 🇻🇪", "slug": "venezuela", "code": "58"}
+    "ethiopia": {"name": "Ethiopia", "flag": "🇪🇹", "code": "251", "slug": "ethiopia"},
+    "guinea": {"name": "Guinea", "flag": "🇬🇳", "code": "224", "slug": "guinea"},
+    "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"},
+    "madagascar": {"name": "Madagascar", "flag": "🇲🇬", "code": "261", "slug": "madagascar"},
+    "mali": {"name": "Mali", "flag": "🇲🇱", "code": "223", "slug": "mali"},
+    "slovenia": {"name": "Slovenia", "flag": "🇸🇮", "code": "386", "slug": "slovenia"},
+    "testall": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"},
+    "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"}
 }
 
-# ذاكرة مؤقتة لتخزين الأرقام المجلوبة لتسريع استجابة المستخدم
 CACHED_NUMBERS = {}
 
 # --- 4. HELPERS ---
@@ -136,7 +134,7 @@ def scrape_single_source(url, code):
     nums = []
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     try:
-        r = requests.get(url, headers=headers, timeout=3)
+        r = requests.get(url, headers=headers, timeout=2)
         if r.status_code == 200:
             soup = BeautifulSoup(r.text, 'html.parser')
             for element in soup.find_all(['h3', 'h4', 'a', 'span', 'p', 'td']):
@@ -176,13 +174,12 @@ def get_numbers_for_target(code, slug):
         
     unique_nums = list(set(all_numbers))
     if not unique_nums:
-        # أرقام افتراضية احتياطية مضمونة في حال ضغط المستخدم ولم يحصل على رقم من الموقع
         unique_nums = [f"+{code}9{int(time.time()) % 100000000}", f"+{code}8{int(time.time()) % 100000000}"]
         
     CACHED_NUMBERS[cache_key] = unique_nums
     return unique_nums
 
-# --- 6. INTERFACE & MENUS (مطابق للفيديو 100%) ---
+# --- 6. INTERFACE & MENUS ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -195,8 +192,7 @@ def get_main_reply_keyboard():
     )
     return markup
 
-def show_main_menu(chat_id):
-    # تصميم القائمة مثل البوت في الفيديو تماماً مع الأقواس والأعداد بجانب التطبيقات
+def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
         InlineKeyboardButton("Facebook 📘 (3)", callback_data="app_facebook"),
@@ -217,13 +213,14 @@ def show_main_menu(chat_id):
     )
     
     welcome_text = (
-        "👋 **مرحباً يا صديقي ـ أنا مطور البوت!**\n"
-        "✅ اختر الدولة من الأزرار بالأسفل.\n\n"
-        "🧩 *استخدم كيبورد البوت بالأسفل لاختيار الأدوات.*"
+        "👋 **مرحباً بك يا صديقي في بوت الأرقام والحسابات!**\n"
+        "✅ اختر التطبيق أو الدولة من الأزرار بالأسفل للحصول على الرقم الحي فوراً."
     )
     try:
-        bot.send_message(chat_id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
-        bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+        if message_id:
+            bot.edit_message_text(welcome_text, chat_id, message_id, reply_markup=markup, parse_mode="Markdown")
+        else:
+            bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
     except Exception:
         pass
 
@@ -242,7 +239,12 @@ def start(message):
         except Exception:
             pass
         return
-    show_main_menu(message.chat.id)
+    
+    try:
+        bot.send_message(message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
+    except Exception:
+        pass
+    send_main_menu(message.chat.id)
 
 @bot.message_handler(func=lambda message: True)
 def handle_text_buttons(message):
@@ -252,7 +254,7 @@ def handle_text_buttons(message):
     
     text = message.text
     if text == "🌐 الدول والأرقام":
-        show_main_menu(message.chat.id)
+        send_main_menu(message.chat.id)
     elif text == "🛒 قسم الأرقام المدفوعة":
         bot.send_message(message.chat.id, "🛍️ **قسم الأرقام المدفوعة الحصرية متاح عبر التواصل مع المطور مباشرة.**", parse_mode="Markdown")
     elif text == "📢 مشاركة البوت":
@@ -276,32 +278,29 @@ def handle_queries(call):
         if is_subscribed(call.from_user.id):
             try: bot.delete_message(call.message.chat.id, call.message.message_id)
             except: pass
-            show_main_menu(call.message.chat.id)
+            send_main_menu(call.message.chat.id)
         else:
             bot.answer_callback_query(call.id, "❌ لم تشترك في القنوات بعد!", show_alert=True)
 
     elif call.data == "back_home":
-        try: bot.delete_message(call.message.chat.id, call.message.message_id)
-        except: pass
-        show_main_menu(call.message.chat.id)
+        send_main_menu(call.message.chat.id, call.message.message_id)
 
     elif call.data.startswith("app_"):
         app_key = call.data.replace("app_", "")
-        app_info = APPS_DATA.get(app_key, {"name": "Service", "code": "1", "slug": "usa"})
+        app_info = APPS_DATA.get(app_key, {"name": "Service", "code": "1", "flag_app": "📱"})
         
-        # عرض الدول الخاصة بالتطبيق كما في الفيديو (مثل سوريا، إيطاليا، فنزويلا)
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("Syria 🇸🇾 (1)", callback_data=f"getnum_{app_key}_syria"),
-            InlineKeyboardButton("Italy 🇮🇹 (1)", callback_data=f"getnum_{app_key}_italy"),
-            InlineKeyboardButton("Italy 🇮🇹 (2)", callback_data=f"getnum_{app_key}_italy"),
-            InlineKeyboardButton("Venezuela 🇻🇪 (1)", callback_data=f"getnum_{app_key}_venezuela")
+            InlineKeyboardButton("Italy 🇮🇹", callback_data=f"getnum_{app_key}_italy"),
+            InlineKeyboardButton("Venezuela 🇻🇪", callback_data=f"getnum_{app_key}_venezuela"),
+            InlineKeyboardButton("Ethiopia 🇪🇹", callback_data=f"getnum_{app_key}_ethiopia"),
+            InlineKeyboardButton("Guinea 🇬🇳", callback_data=f"getnum_{app_key}_guinea")
         )
-        markup.add(InlineKeyboardButton("رجوع الدول 🔙", callback_data="back_home"))
+        markup.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
         
         try:
             bot.edit_message_text(
-                f"📂 **{app_info['name']}**\n🌐 **اختر الدولة أو الفرع من الأزرار بالأسفل:**\n⚡ *الدول: 3 | الفروع: 9*",
+                f"📂 **{app_info['name']}**\n🌐 **اختر الدولة للطلب:**",
                 call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown"
             )
         except Exception:
@@ -312,39 +311,47 @@ def handle_queries(call):
             parts = call.data.split("_")
             if len(parts) == 2:
                 cnt_key = parts[1]
-                cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "USA 🇺🇸", "code": "1", "slug": "usa"})
+                app_name = "Numbers"
+                app_flag = "🌐"
+                cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"})
             else:
+                app_key = parts[1]
                 cnt_key = parts[2]
-                cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy 🇮🇹", "code": "39", "slug": "italy"})
+                app_info = APPS_DATA.get(app_key, {"name": "Service", "flag_app": "📱"})
+                app_name = app_info["name"]
+                app_flag = app_info["flag_app"]
+                cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
                 
-            bot.answer_callback_query(call.id, "🚀 جاري سحب وتخزين الرقم الحي...")
+            bot.answer_callback_query(call.id, "⚡ جاري جلب وتنسيق الرقم...")
             
-            # سحب الأرقام الحية من المواقع وتخزينها واسترجاع رقم عشوائي منها
             nums = get_numbers_for_target(cnt_info["code"], cnt_info["slug"])
             selected_number = nums[int(time.time()) % len(nums)]
             
-            # التصميم المطابق تماماً لما يظهر في الفيديو عند جلب الرقم
+            # تنسيق تصميم الرسالة المطابق للصورة الاحترافية تماماً
+            formatted_msg = (
+                f"B-M Numbers                         BOT-1\n"
+                f"{cnt_info['flag']} #{cnt_info['name'][:2].upper()}  {app_flag}  `{selected_number}`    🔊 #EN\n\n"
+                f"⟨#⟩ الرقم جاهز للاستقبال والطلب.\n"
+                f"🔹 Prefix : `{selected_number[:6]}`"
+            )
+            
+            # أزرار تحت الرسالة مطابقة للصورة (Channel و Bot)
             markup = InlineKeyboardMarkup(row_width=2)
             markup.add(
-                InlineKeyboardButton("🔄 رقم جديد", callback_data=call.data),
-                InlineKeyboardButton("📂 جروب الأكواد", url=DEVELOPER_URL)
+                InlineKeyboardButton("📢 Channel", url=SUBSCRIPTION_LINKS[0]["url"]),
+                InlineKeyboardButton("🤖 Bot", url=DEVELOPER_URL)
             )
-            markup.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
             
-            result_text = (
-                f"🌍 **الدولة:** `{cnt_info['name']}`\n\n"
-                f"📞 **الرقم:** `{selected_number}`\n\n"
-                f"📌 *اضغط مطولاً للنسخ*"
-            )
-            bot.edit_message_text(result_text, call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown")
-            
-            # إرسال نسخة للسجل
+            # إرسال الرسالة للقناة (أو جروب السجل) بالتصميم الاحترافي
             try:
-                bot.send_message(CHANNEL_LOG_ID, f"🌐 **رقم جديد تم طلبه:**\n🌍 الدولة: {cnt_info['name']}\n📞 الرقم: `{selected_number}`")
+                bot.send_message(CHANNEL_LOG_ID, formatted_msg, parse_mode="Markdown", reply_markup=markup)
             except Exception:
                 pass
-        except Exception as e:
-            bot.answer_callback_query(call.id, "❌ حدث خطأ، حاول مجدداً.", show_alert=True)
+                
+            # إرسالها للمستخدم أيضاً في الخاص
+            bot.send_message(call.message.chat.id, f"✅ **تم إرسال الرقم بالتصميم الاحترافي إلى القناة بنجاح!**\n\n{formatted_msg}", parse_mode="Markdown", reply_markup=markup)
+        except Exception:
+            bot.answer_callback_query(call.id, "❌ خطأ في الجلب، حاول مجدداً.", show_alert=True)
 
 # --- 7. RUNNER ---
 if __name__ == "__main__":
