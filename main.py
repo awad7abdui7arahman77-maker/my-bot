@@ -45,14 +45,14 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
+API_TOKEN = "9045833012:AAETb9deU-n-JM9DVbiKX-hTIe8Me7_CK6k"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
 OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
-BOT_USERNAME = "Awad_7744_bot"
+BOT_USERNAME = "Anwid_bot"
 
 try:
     bot.remove_webhook()
@@ -268,7 +268,7 @@ def get_countries_for_service_keyboard(service_key):
     markup = InlineKeyboardMarkup(row_width=2)
     countries_dict = SERVICES_COUNTRIES.get(service_key, {})
     if not countries_dict:
-        countries_dict = SERVICES_COUNTRIES["whatsapp"]  # Fallback
+        countries_dict = SERVICES_COUNTRIES["whatsapp"]
     country_btns = []
     for c_key, c_data in countries_dict.items():
         num_count = get_country_numbers_count(c_data)
