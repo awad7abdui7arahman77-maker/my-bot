@@ -44,16 +44,16 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-API_TOKEN = "9057414594:AAHt3zo-Z7P2Fb9S9Kxa8ZMKb6eUC8V6XV4"
+# التوكن الأصلي للبوت الذي يعمل معك الآن
+API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
 OTP_CHANNEL_USERNAME = "@Awad_Numbers_Bot"
 
 bot = telebot.TeleBot(API_TOKEN)
-BOT_USERNAME = "ADSD_74_bot"
+BOT_USERNAME = "Awad_7744_bot"
 
-# مسح أي ويب هوك قديم وإيقاف التعارض فوراً
 try:
     bot.remove_webhook()
 except Exception:
@@ -69,7 +69,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنواتك الخمس الحقيقية والرسمية فقط
+# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي أثر لقناة A_ToolsX المزعجة)
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -99,7 +99,7 @@ SERVICES_COUNTRIES = {
         "germany": {"name": "Germany 🇩🇪", "code": "49", "slug": "germany", "len": 10, "prefixes": ["15", "16"]}
     },
     "turbo": {
-        "global_turbo": {"name": "⚡ سحبة صاروخية لـ 3 أرقام", "code": "1", "slug": "united-states", "len": 201, "prefixes": ["201", "415"]}
+        "global_turbo": {"name": "⚡ سحبة صاروخية لـ 3 أرقام", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "415"]}
     }
 }
 
@@ -363,7 +363,7 @@ def handle_menu_buttons(message):
         )
         bot.send_message(message.chat.id, msg_ref, parse_mode="Markdown")
     elif txt == "👨‍💻 تواصل مع المطور":
-        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
+        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك المطور", url=DEVELOPER_URL))
         bot.send_message(message.chat.id, "💬 **للتواصل المباشر مع المطور (@awad3210):**", reply_markup=markup, parse_mode="Markdown")
 
 @bot.message_handler(func=lambda message: True)
@@ -483,5 +483,4 @@ def copy_code_cb(call):
 
 if __name__ == "__main__":
     keep_alive()
-    # تشغيل آمن ومستقر تماماً لمنع أخطاء التداخل
     bot.infinity_polling(skip_pending=True)
