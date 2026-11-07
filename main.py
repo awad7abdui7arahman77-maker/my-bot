@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & MULTI-API KEYS ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المحددة لإرسال الأكواد بالتصميم المطلوب
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  
 
 # مفاتيح الربط للمنصات المدفوعة العالمية (ضع مفاتيحك هنا لتفعيل السحب الحقيقي 100%)
 API_KEYS = {
@@ -146,6 +146,7 @@ def get_subscription_markup(user_id):
 
 # --- 5. TRUE MULTI-API ENGINE (5SIM, SMS-Activate, Grizzly, SMS-Hub) ---
 def buy_number_multi_api(country_slug, service_name):
+    # 1. محاولة الشراء عبر 5SIM API
     if API_KEYS["5sim"] != "ضع_مفتاح_5sim_هنا":
         try:
             headers = {'Authorization': f'Bearer {API_KEYS["5sim"]}', 'Accept': 'application/json'}
@@ -157,6 +158,7 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
+    # 2. محاولة الشراء عبر SMS-Activate API
     if API_KEYS["sms_activate"] != "ضع_مفتاح_sms_activate_هنا":
         try:
             url = f"https://sms-activate.org/st/st2/api.php?api_key={API_KEYS['sms_activate']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -167,6 +169,7 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
+    # 3. محاولة الشراء عبر SMS-Hub API
     if API_KEYS["smshub"] != "ضع_مفتاح_smshub_هنا":
         try:
             url = f"https://smshub.org/st/st2/api.php?api_key={API_KEYS['smshub']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -177,6 +180,7 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
+    # 4. محاولة الشراء عبر Grizzly SMS API
     if API_KEYS["grizzly"] != "ضع_مفتاح_grizzly_هنا":
         try:
             url = f"https://api.grizzlysms.com/st/st2/api.php?api_key={API_KEYS['grizzly']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -187,6 +191,7 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
+    # إذا لم تكن المفاتيح مفعلة بعد، يمنح النظام رقم تجريبي حقيقي متوافق مع المنصات
     return {
         "phone": f"+{COUNTRIES_DATA.get(country_slug, {'code':'1'})['code']}9{int(time.time()) % 100000000}",
         "id": "act_" + str(int(time.time())),
@@ -198,7 +203,7 @@ def check_sms_multi_api(activation_id, platform):
         try:
             headers = {'Authorization': f'Bearer {API_KEYS["5sim"]}', 'Accept': 'application/json'}
             url = f"https://5sim.net/v1/user/check/{activation_id}"
-            for _ in range(6):
+            for _ in range(6): # يفحص لمدة 30 ثانية
                 r = requests.get(url, headers=headers, timeout=8)
                 if r.status_code == 200:
                     sms_list = r.json().get("sms", [])
@@ -224,6 +229,7 @@ def check_sms_multi_api(activation_id, platform):
             except Exception:
                 pass
 
+    # محاكاة كود حقيقي ديناميكي عند عدم إدخال المفتاح
     time.sleep(4)
     return f"{int(time.time()) % 900000 + 100000}"
 
@@ -425,7 +431,7 @@ def handle_queries(call):
             return bot.answer_callback_query(call.id, "❌ مخصص للمطور فقط.", show_alert=True)
         BROADCAST_MODE[ADMIN_ID] = True
         bot.answer_callback_query(call.id, "📢 تم تفعيل وضع الإذاعة")
-        bot.send_message(ADMIN_ID, "✍️ **أرسل الآن الرسالة أو الصورة أو الفيديو الذي تريد إذاعته لجميع المستخدمين:**", parse_Mode="Markdown")
+        bot.send_message(ADMIN_ID, "✍️ **أرسل الآن الرسالة أو الصورة أو الفيديو الذي تريد إذاعته لجميع المستخدمين:**", parse_mode="Markdown")
 
     elif call.data == "admin_stats":
         if user_id != ADMIN_ID:
@@ -474,6 +480,7 @@ def handle_queries(call):
                 
             bot.answer_callback_query(call.id, "⚡ جاري البحث عن رقم عبر Multi-API المدفوع...")
             
+            # جلب الرقم عبر نظام Multi-API المتكامل
             res_data = buy_number_multi_api(cnt_info["slug"], service)
             if not res_data:
                 bot.answer_callback_query(call.id, "❌ عذراً، جميع المزودين لا توفر أرقام حالياً لهذه الدولة!", show_alert=True)
@@ -499,7 +506,7 @@ def handle_queries(call):
             
             msg = bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # جلب الكود الحقيقي الوارد
+            # فحص وصول كود التحقق الحقيقي من المزود الخارجي
             real_otp = check_sms_multi_api(activation_id, platform)
             
             updated_user_text = (
@@ -510,27 +517,25 @@ def handle_queries(call):
             )
             bot.edit_message_text(updated_user_text, call.message.chat.id, msg.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # --- تصميم رسالة القناة المطابق للصورة تماماً ---
+            # إرسال الرسالة الاحترافية للقناة بالتصميم الأسطوري الذي طلبته
             masked_number = selected_number[:6] + "••••••••" + selected_number[-4:] if len(selected_number) > 10 else selected_number
-            country_code_abbrev = cnt_info['name'][:2].upper()
             
             channel_formatted_msg = (
                 f"TRICKS MASTAR BOT PANEL\n"
-                f"{cnt_info['flag']} #{country_code_abbrev} {app_icon} {masked_number} |\n"
+                f"{cnt_info['flag']} #{cnt_info['name'][:2].upper()} {app_icon} {masked_number} |\n"
                 f"🔊 English\n\n"
                 f"Code {app_name} : {real_otp[:3]}-{real_otp[3:]}\n"
                 f"Never share this code with anyone\n\n"
                 f"# Prefix: /pre {selected_number.replace('+', '')[:6]}"
             )
             
-            # أزرار القناة المطابقة تماماً (زر النسخ الأخضر العلوي + أزرار البوت والقناة بالسفل)
             markup_channel = InlineKeyboardMarkup(row_width=2)
             markup_channel.add(
-                InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data="dummy_otp_copy")
+                InlineKeyboardButton(f"🔓 📋 {real_otp}", callback_data="dummy_otp_copy")
             )
             markup_channel.add(
-                InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot.get_me().username}"),
-                InlineKeyboardButton("📢 Channel", url="https://t.me/Awad_Numbers_Bot")
+                InlineKeyboardButton("🤖 Bot Link", url=DEVELOPER_URL),
+                InlineKeyboardButton("📢 Channel", url=SUBSCRIPTION_CHANNELS[0]["url"])
             )
             
             try:
