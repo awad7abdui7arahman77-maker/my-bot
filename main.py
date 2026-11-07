@@ -44,24 +44,20 @@ def keep_alive():
     Thread(target=run, daemon=True).start()
     Thread(target=self_ping, daemon=True).start()
 
-# --- 3. BOT CONFIGURATIONS & SECURITY ---
+# --- 3. BOT CONFIGURATIONS ---
 API_TOKEN = "9045833012:AAETb9deU-n-JM9DVbiKX-hTIe8Me7_CK6k"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
 
+# حذف أي ويب هوك قديم تماماً قبل تشغيل البوت
+try:
+    requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
+except Exception:
+    pass
+
 bot = telebot.TeleBot(API_TOKEN)
 BOT_USERNAME = "Anwid_bot"
-
-try:
-    bot.remove_webhook()
-except Exception:
-    pass
-
-try:
-    requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=5)
-except Exception:
-    pass
 
 # --- CHANNELS FOR FORCE SUBSCRIPTION ---
 SUBSCRIPTION_LINKS = [
@@ -70,7 +66,7 @@ SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx", "id": "@jzbznznx"},
     {"name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210", "id": "@breakthroughawad210"},
     {"name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw", "id": "@sn6hdbdn19dndw"},
-    {"name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+KhzU3jbVrVVkNWU0", "id": None} # جروب برابط دعوة خاص
+    {"name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+KhzU3jbVrVVkNWU0", "id": None}
 ]
 
 user_points = {}
@@ -127,7 +123,6 @@ def check_subscription(user_id):
                 if member.status not in ['member', 'administrator', 'creator']:
                     return False
             except Exception:
-                # إذا لم يكن البوت مشرفاً في القناة، نتجاوز التحقق المؤقت أو نعتبرها غير محققة
                 pass
     return True
 
@@ -155,14 +150,6 @@ def save_user(user_id, referrer_id=None):
                 bot.send_message(ref_int, f"🎁 **مبروك! انضم صديق عبر رابط إحالتك وكسبت 15 نقطة!** 🚀", parse_mode="Markdown")
             except Exception:
                 pass
-
-def rate_limit_check(user_id, seconds=2):
-    if user_id in SUB_ADMINS: return False
-    now = time.time()
-    if user_id in user_last_action and (now - user_last_action[user_id]) < seconds:
-        return True
-    user_last_action[user_id] = now
-    return False
 
 def scrape_source(url, code):
     nums = []
@@ -352,9 +339,6 @@ def handle_menu_buttons(message):
     if not check_subscription(user_id):
         return bot.send_message(message.chat.id, "🚀 **يجب عليك الاشتراك في القنوات أولاً لاستخدام البوت:**", reply_markup=force_sub_markup(), parse_mode="Markdown")
 
-    if rate_limit_check(user_id, seconds=2):
-        return bot.send_message(message.chat.id, "⏳ **يرجى الانتظار قليلاً.**", parse_mode="Markdown")
-
     txt = message.text
     if txt == "🌐 الأقسام والتطبيقات":
         bot.send_message(message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
@@ -468,6 +452,6 @@ if __name__ == "__main__":
     keep_alive()
     while True:
         try:
-            bot.infinity_polling(timeout=20, long_polling_timeout=10)
-        except Exception:
+            bot.infinity_polling(timeout=10, long_polling_timeout=5, skip_pending=True)
+        except Exception as e:
             time.sleep(3)
