@@ -44,10 +44,16 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & KEYS ---
-API_TOKEN = '8515653728:AAE1Hl35W8UQARugnmeus8kGscs-FKyWSjw'
+API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 API_5SIM_KEY = 'ضع_مفتاح_الـ_API_الخاص_بموقع_5sim_هنا' 
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  
+
+# تنظيف فوري لأي ويبهوك قديم عالق قبل تشغيل البوت
+try:
+    requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
+except Exception:
+    pass
 
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 HEADERS_5SIM = {
@@ -58,7 +64,7 @@ HEADERS_5SIM = {
 PROFIT_MARGIN = 0.05
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري الخاصة بك
+# قنوات الاشتراك الإجباري الخاصة بك وحدك
 CHANNELS = [
     '@Awad_Numbers_Bot', 
     '@v_o_lti', 
@@ -408,13 +414,7 @@ def handle_queries(call):
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("Bot engine is running 24/7 safely with exception safeguards!")
-    
-    # تنظيف أي Webhook قديم عالق لمنع خطأ 401
-    try:
-        requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
-    except Exception:
-        pass
+    print("Bot engine is running 24/7 safely with new token and active channels!")
 
     while True:
         try:
