@@ -20,37 +20,13 @@ except AttributeError:
     sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
     sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
 
-# --- 2. KEEP ALIVE SYSTEM (24/7) ---
-app = Flask('')
-
-@app.route('/')
-def home():
-    return "⚡ Elite Master Bot Server Active 24/7! ⚡"
-
-def run():
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
-
-def self_ping():
-    time.sleep(60)
-    while True:
-        try:
-            requests.get("https://my-bot-p6kw.onrender.com", timeout=10)
-        except Exception:
-            pass
-        time.sleep(600)
-
-def keep_alive():
-    Thread(target=run, daemon=True).start()
-    Thread(target=self_ping, daemon=True).start()
-
-# --- 3. BOT CONFIGURATIONS ---
+# --- 2. BOT CONFIGURATIONS ---
 API_TOKEN = "9045833012:AAETb9deU-n-JM9DVbiKX-hTIe8Me7_CK6k"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# حذف أي ويب هوك قديم تماماً قبل تشغيل البوت
+# تنظيف أي Webhook قديم تماماً
 try:
     requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
 except Exception:
@@ -448,10 +424,26 @@ def copy_code_cb(code_call):
     code = code_call.data.replace("copy_code_", "")
     bot.answer_callback_query(code_call.id, f"📋 تم نسخ الكود: {code}", show_alert=True)
 
-if __name__ == "__main__":
-    keep_alive()
+# --- 3. SERVER & BOT THREADING ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "⚡ Elite Master Bot Server Active 24/7! ⚡"
+
+def run_flask():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def run_bot():
     while True:
         try:
             bot.infinity_polling(timeout=10, long_polling_timeout=5, skip_pending=True)
-        except Exception as e:
+        except Exception:
             time.sleep(3)
+
+if __name__ == "__main__":
+    # تشغيل سيرفر الويب في خلفية مستقلة لضمان بقاء التطبيق نشطاً على ريلواي
+    Thread(target=run_flask, daemon=True).start()
+    # تشغيل بوت التيليجرام في الخيط الرئيسي
+    run_bot()
