@@ -44,7 +44,6 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & SECURITY ---
-# التوكن الأصلي للبوت الذي يعمل معك الآن
 API_TOKEN = "8515653728:AAH7zicsU7S2dxzdt7Ju_puAgr1iylhyDB8"
 ADMIN_ID = 8388141188 
 SUB_ADMINS = [ADMIN_ID] 
@@ -69,7 +68,7 @@ bot_stats = {"numbers_generated": 0, "otps_fetched": 0}
 user_points = {}
 user_history = {}
 
-# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي أثر لقناة A_ToolsX المزعجة)
+# قنواتك الخمس الحقيقية والرسمية فقط (بدون أي أثر لقناة A_ToolsX)
 SUBSCRIPTION_LINKS = [
     {"name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot", "username": "@Awad_Numbers_Bot"},
     {"name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti", "username": "@v_o_lti"},
@@ -363,7 +362,7 @@ def handle_menu_buttons(message):
         )
         bot.send_message(message.chat.id, msg_ref, parse_mode="Markdown")
     elif txt == "👨‍💻 تواصل مع المطور":
-        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك المطور", url=DEVELOPER_URL))
+        markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
         bot.send_message(message.chat.id, "💬 **للتواصل المباشر مع المطور (@awad3210):**", reply_markup=markup, parse_mode="Markdown")
 
 @bot.message_handler(func=lambda message: True)
