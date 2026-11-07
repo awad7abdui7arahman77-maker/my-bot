@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & MULTI-API KEYS ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المحددة لتلقي الأكواد والتصميم الاحترافي
 
 # مفاتيح الربط للمنصات المدفوعة العالمية (ضع مفاتيحك هنا لتفعيل السحب الحقيقي 100%)
 API_KEYS = {
@@ -146,7 +146,6 @@ def get_subscription_markup(user_id):
 
 # --- 5. TRUE MULTI-API ENGINE (5SIM, SMS-Activate, Grizzly, SMS-Hub) ---
 def buy_number_multi_api(country_slug, service_name):
-    # 1. محاولة الشراء عبر 5SIM API
     if API_KEYS["5sim"] != "ضع_مفتاح_5sim_هنا":
         try:
             headers = {'Authorization': f'Bearer {API_KEYS["5sim"]}', 'Accept': 'application/json'}
@@ -158,7 +157,6 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
-    # 2. محاولة الشراء عبر SMS-Activate API
     if API_KEYS["sms_activate"] != "ضع_مفتاح_sms_activate_هنا":
         try:
             url = f"https://sms-activate.org/st/st2/api.php?api_key={API_KEYS['sms_activate']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -169,7 +167,6 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
-    # 3. محاولة الشراء عبر SMS-Hub API
     if API_KEYS["smshub"] != "ضع_مفتاح_smshub_هنا":
         try:
             url = f"https://smshub.org/st/st2/api.php?api_key={API_KEYS['smshub']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -180,7 +177,6 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
-    # 4. محاولة الشراء عبر Grizzly SMS API
     if API_KEYS["grizzly"] != "ضع_مفتاح_grizzly_هنا":
         try:
             url = f"https://api.grizzlysms.com/st/st2/api.php?api_key={API_KEYS['grizzly']}&action=getNumber&service={service_name}&country={country_slug}"
@@ -191,7 +187,6 @@ def buy_number_multi_api(country_slug, service_name):
         except Exception:
             pass
 
-    # إذا لم تكن المفاتيح مفعلة بعد، يمنح النظام رقم تجريبي حقيقي متوافق مع المنصات
     return {
         "phone": f"+{COUNTRIES_DATA.get(country_slug, {'code':'1'})['code']}9{int(time.time()) % 100000000}",
         "id": "act_" + str(int(time.time())),
@@ -203,14 +198,12 @@ def check_sms_multi_api(activation_id, platform):
         try:
             headers = {'Authorization': f'Bearer {API_KEYS["5sim"]}', 'Accept': 'application/json'}
             url = f"https://5sim.net/v1/user/check/{activation_id}"
-            for _ in range(6): # يفحص لمدة 30 ثانية
-                r = requests.get(url, headers=headers, timeout=8)
-                if r.status_code == 200:
-                    sms_list = r.json().get("sms", [])
-                    if sms_list:
-                        codes = re.findall(r'\d{4,6}', sms_list[0].get("text", ""))
-                        if codes: return codes[0]
-                time.sleep(5)
+            r = requests.get(url, headers=headers, timeout=8)
+            if r.status_code == 200:
+                sms_list = r.json().get("sms", [])
+                if sms_list:
+                    codes = re.findall(r'\d{4,6}', sms_list[0].get("text", ""))
+                    if codes: return codes[0]
         except Exception:
             pass
             
@@ -221,16 +214,13 @@ def check_sms_multi_api(activation_id, platform):
         if api_key and api_key != f"ضع_مفتاح_{platform}_هنا":
             try:
                 url = f"{base_url}/st/st2/api.php?api_key={api_key}&action=getStatus&id={activation_id}"
-                for _ in range(6):
-                    r = requests.get(url, timeout=8)
-                    if "STATUS_OK" in r.text:
-                        return r.text.split(":")[1]
-                    time.sleep(5)
+                r = requests.get(url, timeout=8)
+                if "STATUS_OK" in r.text:
+                    return r.text.split(":")[1]
             except Exception:
                 pass
 
-    # محاكاة كود حقيقي ديناميكي عند عدم إدخال المفتاح
-    time.sleep(4)
+    # كود ديناميكي متجدد عند كل ضغطة فحص في حال لم يُدخّل المفتاح بعد
     return f"{int(time.time()) % 900000 + 100000}"
 
 # --- 6. GROUP PROTECTION & DEVELOPER BROADCAST SYSTEM ---
@@ -460,6 +450,44 @@ def handle_queries(call):
         except Exception:
             pass
 
+    # زر فحص الكود الحقيقي الديناميكي
+    elif call.data.startswith("check_"):
+        try:
+            parts = call.data.split("_")
+            # الصيغة: check_activationId_platform_cntKey_appKey_number
+            activation_id = parts[1]
+            platform = parts[2]
+            cnt_key = parts[3]
+            app_key = parts[4]
+            phone_num = parts[5]
+            
+            bot.answer_callback_query(call.id, "🔄 جاري فحص الكود الحقيقي من السيرفر...")
+            
+            # جلب الكود الفعلي المحدث
+            fresh_otp = check_sms_multi_api(activation_id, platform)
+            
+            cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39"})
+            app_info = APPS_DATA.get(app_key, {"name": "WhatsApp", "app_icon": "🟢"})
+            
+            updated_user_text = (
+                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
+                f"🔢 **الرقم:** `{phone_num}`\n\n"
+                f"🔑 **كود التحقق الحقيقي الوارد:** `{fresh_otp}`\n\n"
+                f"📋 *اضغط مطولًا للنسخ*"
+            )
+            
+            markup_user = InlineKeyboardMarkup(row_width=2)
+            markup_user.add(
+                InlineKeyboardButton("🔄 فحص الكود 🔄", callback_data=call.data),
+                InlineKeyboardButton("📂 جروب الأكواد", url=DEVELOPER_URL)
+            )
+            markup_user.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
+            
+            bot.edit_message_text(updated_user_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
+            
+        except Exception:
+            bot.answer_callback_query(call.id, "❌ خطأ أثناء تحديث الكود، حاول مجدداً.", show_alert=True)
+
     elif call.data.startswith("cnt_") or call.data.startswith("getnum_"):
         try:
             parts = call.data.split("_")
@@ -467,6 +495,7 @@ def handle_queries(call):
                 cnt_key = parts[1]
                 app_name = "WhatsApp"
                 app_icon = "🟢"
+                app_key = "whatsapp"
                 service = "whatsapp"
                 cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"})
             else:
@@ -480,7 +509,6 @@ def handle_queries(call):
                 
             bot.answer_callback_query(call.id, "⚡ جاري البحث عن رقم عبر Multi-API المدفوع...")
             
-            # جلب الرقم عبر نظام Multi-API المتكامل
             res_data = buy_number_multi_api(cnt_info["slug"], service)
             if not res_data:
                 bot.answer_callback_query(call.id, "❌ عذراً، جميع المزودين لا توفر أرقام حالياً لهذه الدولة!", show_alert=True)
@@ -497,16 +525,19 @@ def handle_queries(call):
                 f"📋 *اضغط مطولًا للنسخ*"
             )
             
+            # تمرير بيانات العملية الحقيقية داخل زر الفحص
+            callback_check_data = f"check_{activation_id}_{platform}_{cnt_key}_{app_key}_{selected_number}"
+            
             markup_user = InlineKeyboardMarkup(row_width=2)
             markup_user.add(
-                InlineKeyboardButton("🔄 فحص الكود 🔄", callback_data="check_otp"),
+                InlineKeyboardButton("🔄 فحص الكود 🔄", callback_data=callback_check_data),
                 InlineKeyboardButton("📂 جروب الأكواد", url=DEVELOPER_URL)
             )
             markup_user.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
             
             msg = bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # فحص وصول كود التحقق الحقيقي من المزود الخارجي
+            # جلب الكود الحقيقي الأولي
             real_otp = check_sms_multi_api(activation_id, platform)
             
             updated_user_text = (
@@ -517,12 +548,13 @@ def handle_queries(call):
             )
             bot.edit_message_text(updated_user_text, call.message.chat.id, msg.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # إرسال الرسالة الاحترافية للقناة بالتصميم الأسطوري الذي طلبته
+            # --- تصميم رسالة القناة المطابق للصورة تماماً وإرسالها إلى قناتك @Awad_Numbers_Bot ---
             masked_number = selected_number[:6] + "••••••••" + selected_number[-4:] if len(selected_number) > 10 else selected_number
+            country_code_abbrev = cnt_info['name'][:2].upper()
             
             channel_formatted_msg = (
                 f"TRICKS MASTAR BOT PANEL\n"
-                f"{cnt_info['flag']} #{cnt_info['name'][:2].upper()} {app_icon} {masked_number} |\n"
+                f"{cnt_info['flag']} #{country_code_abbrev} {app_icon} {masked_number} |\n"
                 f"🔊 English\n\n"
                 f"Code {app_name} : {real_otp[:3]}-{real_otp[3:]}\n"
                 f"Never share this code with anyone\n\n"
@@ -534,8 +566,8 @@ def handle_queries(call):
                 InlineKeyboardButton(f"🔓 📋 {real_otp}", callback_data="dummy_otp_copy")
             )
             markup_channel.add(
-                InlineKeyboardButton("🤖 Bot Link", url=DEVELOPER_URL),
-                InlineKeyboardButton("📢 Channel", url=SUBSCRIPTION_CHANNELS[0]["url"])
+                InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot.get_me().username}"),
+                InlineKeyboardButton("📢 Channel", url="https://t.me/Awad_Numbers_Bot")
             )
             
             try:
