@@ -69,10 +69,14 @@ user_points = {}
 user_last_action = {}
 recent_numbers_cache = set()
 
+# --- SERVICES & COUNTRIES ---
 SERVICES_DATA = {
     "whatsapp": {"name": "WhatsApp", "icon": "💬"},
     "telegram": {"name": "Telegram", "icon": "✈️"},
-    "turbo": {"name": "⚡ سحبة صاروخية (3 أرقام)", "icon": "🚀"}
+    "facebook": {"name": "Facebook", "icon": "📘"},
+    "instagram": {"name": "Instagram", "icon": "📸"},
+    "tiktok": {"name": "TikTok", "icon": "🎵"},
+    "turbo": {"name": "⚡ سحبة صاروخية", "icon": "🚀"}
 }
 
 SERVICES_COUNTRIES = {
@@ -88,6 +92,19 @@ SERVICES_COUNTRIES = {
         "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "202", "415"]},
         "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "11", "12"]},
         "germany": {"name": "Germany 🇩🇪", "code": "49", "slug": "germany", "len": 10, "prefixes": ["15", "16"]}
+    },
+    "facebook": {
+        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "415"]},
+        "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "11", "12"]},
+        "germany": {"name": "Germany 🇩🇪", "code": "49", "slug": "germany", "len": 10, "prefixes": ["15", "16"]}
+    },
+    "instagram": {
+        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "310", "415"]},
+        "kuwait": {"name": "Kuwait 🇰🇼", "code": "965", "slug": "kuwait", "len": 8, "prefixes": ["5", "9"]}
+    },
+    "tiktok": {
+        "usa": {"name": "USA 🇺🇸", "code": "1", "slug": "united-states", "len": 10, "prefixes": ["201", "415", "917"]},
+        "egypt": {"name": "Egypt 🇪🇬", "code": "20", "slug": "egypt", "len": 10, "prefixes": ["10", "12"]}
     }
 }
 
@@ -105,11 +122,11 @@ def save_user(user_id, referrer_id=None):
             ref_int = int(referrer_id)
             user_points[ref_int] = user_points.get(ref_int, 0) + 15
             try:
-                bot.send_message(ref_int, f"🎁 **مبروك! انضم صديق عبر رابط إحالتك وكسبت 15 نقطة رصيد أرقام مضمونة!** 🚀", parse_mode="Markdown")
+                bot.send_message(ref_int, f"🎁 **مبروك! انضم صديق عبر رابط إحالتك وكسبت 15 نقطة!** 🚀", parse_mode="Markdown")
             except Exception:
                 pass
 
-def rate_limit_check(user_id, seconds=3):
+def rate_limit_check(user_id, seconds=2):
     if user_id in SUB_ADMINS: return False
     now = time.time()
     if user_id in user_last_action and (now - user_last_action[user_id]) < seconds:
@@ -191,7 +208,7 @@ def fetch_real_otp_sms(phone_num):
             if r.status_code == 200:
                 soup = BeautifulSoup(r.text, 'html.parser')
                 text_content = soup.get_text()
-                match = re.search(r'(?:WhatsApp|Telegram|code|كود|واتساب).*?(\d{3}[\s-]?\d{3})', text_content, re.IGNORECASE)
+                match = re.search(r'(?:WhatsApp|Telegram|Facebook|Instagram|TikTok|code|كود|واتساب).*?(\d{3}[\s-]?\d{3})', text_content, re.IGNORECASE)
                 if match:
                     return match.group(1).replace("-", "").replace(" ", "")
                 all_six_digits = re.findall(r'\b\d{6}\b', text_content)
@@ -250,6 +267,8 @@ def get_services_only_keyboard():
 def get_countries_for_service_keyboard(service_key):
     markup = InlineKeyboardMarkup(row_width=2)
     countries_dict = SERVICES_COUNTRIES.get(service_key, {})
+    if not countries_dict:
+        countries_dict = SERVICES_COUNTRIES["whatsapp"]  # Fallback
     country_btns = []
     for c_key, c_data in countries_dict.items():
         num_count = get_country_numbers_count(c_data)
@@ -268,9 +287,9 @@ def start_cmd(message):
     save_user(user_id, ref_id)
     
     points = user_points.get(user_id, 10)
-    msg = f"مرحباً بك يا أواّد في بوت الأرقام الخارق ⚡\n⭐ رصيدك الحالي: `{points}` نقاط\nاختر القسم أو التطبيق المراد تفعيله من الأزرار بالأسفل:"
+    msg = f"مرحباً بك يا أواّد في بوت الأرقام الخارق ⚡\n⭐ رصيدك الحالي: `{points}` نقاط\nاختر التطبيق المراد تفعيله من الأزرار بالأسفل:"
     bot.send_message(message.chat.id, msg, reply_markup=main_reply_keyboard(), parse_mode="Markdown")
-    bot.send_message(message.chat.id, "💬 اختر الدولة أو الخدمة:", reply_markup=get_services_only_keyboard())
+    bot.send_message(message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
 
 @bot.message_handler(func=lambda message: message.text in ["🌐 الأقسام والتطبيقات", "⚡ سحبة صاروخية (3 أرقام)", "🔗 نقاطي ورابط الإحالة", "👨‍💻 تواصل مع المطور"])
 def handle_menu_buttons(message):
@@ -280,7 +299,7 @@ def handle_menu_buttons(message):
 
     txt = message.text
     if txt == "🌐 الأقسام والتطبيقات":
-        bot.send_message(message.chat.id, "💬 اختر الدولة أو الخدمة:", reply_markup=get_services_only_keyboard())
+        bot.send_message(message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
     elif txt == "⚡ سحبة صاروخية (3 أرقام)":
         turbo_countries = list(SERVICES_COUNTRIES["whatsapp"].values())
         chosen_country = random.choice(turbo_countries)
@@ -294,7 +313,7 @@ def handle_menu_buttons(message):
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
             InlineKeyboardButton("🔄 رقم جديد", callback_data=f"get_single_num_whatsapp_{chosen_country['slug']}"),
-            InlineKeyboardButton("🌐 تغيير الدولة", callback_data="show_all_services")
+            InlineKeyboardButton("🌐 تغيير التطبيق", callback_data="show_all_services")
         )
         markup.add(InlineKeyboardButton("❌ إغلاق", callback_data="remove_cc"))
         bot.send_message(message.chat.id, number_display_text, reply_markup=markup, parse_mode="Markdown")
@@ -317,9 +336,9 @@ def handle_menu_buttons(message):
 @bot.callback_query_handler(func=lambda call: call.data == "show_all_services")
 def show_all_services_cb(call):
     try:
-        bot.edit_message_text("💬 اختر الدولة أو الخدمة:", call.message.chat.id, call.message.message_id, reply_markup=get_services_only_keyboard())
+        bot.edit_message_text("💬 اختر التطبيق:", call.message.chat.id, call.message.message_id, reply_markup=get_services_only_keyboard())
     except Exception:
-        bot.send_message(call.message.chat.id, "💬 اختر الدولة أو الخدمة:", reply_markup=get_services_only_keyboard())
+        bot.send_message(call.message.chat.id, "💬 اختر التطبيق:", reply_markup=get_services_only_keyboard())
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("show_countries_"))
 def show_countries_cb(call):
@@ -340,10 +359,11 @@ def get_single_number_cb(call):
     service_info = SERVICES_DATA.get(service_key, {"name": "التطبيق", "icon": "💬"})
     country_info = SERVICES_COUNTRIES.get(service_key, {}).get(country_key, {"name": "الدولة", "code": "967", "slug": "yemen", "len": 9, "prefixes": ["77"]})
     
-    bot.answer_callback_query(call.id, "⚡ جاري سحب رقم حقيقي...")
+    bot.answer_callback_query(call.id, f"⚡ جاري سحب رقم لـ {service_info['name']}...")
     single_num = get_real_live_number(country_info)
     
     number_display_text = (
+        f"📱 **التطبيق:** {service_info['icon']} {service_info['name']}\n"
         f"🌍 **الدولة:** {country_info['name']}\n\n"
         f"🔢 **الرقم:** `+{country_info['code']}{single_num}`\n\n"
         f"📋 **اضغط مطولاً للنسخ**"
