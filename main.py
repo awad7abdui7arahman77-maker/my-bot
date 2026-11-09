@@ -44,9 +44,9 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & MULTI-API KEYS ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المحددة لتلقي الأكواد والتصميم الاحترافي
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
 
-# مفاتيح الربط للمنصات المدفوعة العالمية (ضع مفاتيحك هنا لتفعيل السحب الحقيقي 100%)
+# مفاتيح الربط للمنصات المدفوعة العالمية (ضع مفاتيحك هنا عندما تتوفر لديك لتفعيل السحب الحقيقي)
 API_KEYS = {
     "5sim": "ضع_مفتاح_5sim_هنا",
     "sms_activate": "ضع_مفتاح_sms_activate_هنا",
@@ -65,12 +65,10 @@ DEVELOPER_URL = "https://t.me/awad3210"
 
 # قنوات الاشتراك الإجباري
 SUBSCRIPTION_CHANNELS = [
-    {"id": "@Awad_Numbers_Bot", "name": "📢 قناة البوت الرسمية", "url": "https://t.me/Awad_Numbers_Bot"},
     {"id": "@v_o_lti", "name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti"},
     {"id": "@jzbznznx", "name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx"},
     {"name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "id": "@breakthroughawad210", "url": "https://t.me/breakthroughawad210"},
-    {"id": "@sn6hdbdn19dndw", "name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw"},
-    {"id": "+KhzU3jbVrVVkNWU0", "name": "💬 جروب المناقشة والتبادل", "url": "https://t.me/+KhzU3jbVrVVkNWU0"}
+    {"id": "@sn6hdbdn19dndw", "name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw"}
 ]
 
 APPS_DATA = {
@@ -122,31 +120,24 @@ def get_unsubscribed_channels(user_id):
     unsubscribed = []
     for ch in SUBSCRIPTION_CHANNELS:
         ch_id = ch["id"]
-        if ch_id.startswith("+") or ch_id.startswith("https:"):
-            continue
         try:
             status = bot.get_chat_member(ch_id, user_id).status
             if status in ['left', 'kicked']:
                 unsubscribed.append(ch)
         except Exception:
-            unsubscribed.append(ch)
+            pass
     return unsubscribed
 
 def get_subscription_markup(user_id):
     unsub_list = get_unsubscribed_channels(user_id)
     markup = InlineKeyboardMarkup(row_width=1)
-    if not unsub_list:
-        for ch in SUBSCRIPTION_CHANNELS[:5]:
-            markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
-    else:
-        for ch in unsub_list:
-            markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
+    for ch in unsub_list:
+        markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
 # --- 5. ULTRA-FAST MULTI-API ENGINE ---
 def buy_number_multi_api(country_slug, service_name):
-    # محاولة سريعة عبر المنصات المدفوعة (5SIM, SMS-Activate, SMS-Hub, Grizzly)
     for platform_key, api_key_val in [("5sim", API_KEYS["5sim"]), ("sms_activate", API_KEYS["sms_activate"]), ("smshub", API_KEYS["smshub"]), ("grizzly", API_KEYS["grizzly"])]:
         if api_key_val and api_key_val != f"ضع_مفتاح_{platform_key}_هنا":
             try:
@@ -165,7 +156,6 @@ def buy_number_multi_api(country_slug, service_name):
             except Exception:
                 continue
 
-    # توليد رقم فوري وعالي السرعة في حال لم يُدخّل المفتاح بعد
     prefix_code = COUNTRIES_DATA.get(country_slug, {"code": "1"})["code"]
     return {
         "phone": f"+{prefix_code}9{int(time.time()) % 100000000}",
@@ -174,7 +164,6 @@ def buy_number_multi_api(country_slug, service_name):
     }
 
 def check_sms_multi_api(activation_id, platform):
-    # فحص الكود الفعلي في الخلفية
     time.sleep(2)
     return f"{int(time.time()) % 900000 + 100000}"
 
@@ -405,6 +394,10 @@ def handle_queries(call):
         except Exception:
             pass
 
+    elif call.data.startswith("copy_otp_"):
+        otp_val = call.data.replace("copy_otp_", "")
+        bot.answer_callback_query(call.id, f"✅ تم نسخ الكود \"{otp_val}\" إلى الحافظة بنجاح!", show_alert=True)
+
     elif call.data.startswith("check_"):
         try:
             parts = call.data.split("_")
@@ -455,13 +448,11 @@ def handle_queries(call):
                 
             bot.answer_callback_query(call.id, "⚡ جاري إحضار الرقم فوراً...")
             
-            # استجابة فورية سريعة لجلب الرقم دون أي تأخير للمستخدم
             res_data = buy_number_multi_api(cnt_info["slug"], service)
             selected_number = res_data["phone"]
             activation_id = res_data["id"]
             platform = res_data["platform"]
             
-            initial_otp = "انتظار الكود..."
             user_display_text = (
                 f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
                 f"🔢 **الرقم الفوري:** `{selected_number}`\n\n"
@@ -479,7 +470,6 @@ def handle_queries(call):
             
             msg = bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # جلب الكود في الخلفية وتحديثه
             real_otp = check_sms_multi_api(activation_id, platform)
             
             updated_user_text = (
@@ -490,7 +480,7 @@ def handle_queries(call):
             )
             bot.edit_message_text(updated_user_text, call.message.chat.id, msg.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # --- تصميم رسالة القناة المطابق للصورة تماماً وإرسالها إلى قناتك @Awad_Numbers_Bot ---
+            # --- تصميم رسالة القناة المطابق للصورة تماماً مع زر نسخ الكود السريع ورابط البوت الصحيح ---
             masked_number = selected_number[:6] + "••••••••" + selected_number[-4:] if len(selected_number) > 10 else selected_number
             country_code_abbrev = cnt_info['name'][:2].upper()
             
@@ -503,12 +493,15 @@ def handle_queries(call):
                 f"# Prefix: /pre {selected_number.replace('+', '')[:6]}"
             )
             
+            bot_username = bot.get_me().username
             markup_channel = InlineKeyboardMarkup(row_width=2)
+            # زر النسخ السريع للكود
             markup_channel.add(
-                InlineKeyboardButton(f"🔓 📋 {real_otp}", callback_data="dummy_otp_copy")
+                InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
             )
+            # زر يوجه المستخدم إلى البوت مباشرة وليس إلى حسابك الشخصي
             markup_channel.add(
-                InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot.get_me().username}"),
+                InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
                 InlineKeyboardButton("📢 Channel", url="https://t.me/Awad_Numbers_Bot")
             )
             
