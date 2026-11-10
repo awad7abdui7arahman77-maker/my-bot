@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها نسخة الأرقام للاستشهد
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها الأرقام تلقائياً
 CHANNEL_URL = "https://t.me/hehsgvsvsv"  # قناتك المطلوبة للأكواد والجروب
 
 # مفاتيح الربط بالمنصات العالمية الحقيقية (ضع مفاتيحك هنا عندما تتوفر لديك)
@@ -194,6 +194,38 @@ def fetch_sms_generic(base_url, key, act_id):
     except Exception:
         pass
     return f"{int(time.time()) % 900000 + 100000}"
+
+def generate_and_publish_number(country_slug, service_name, app_name, app_icon, country_info):
+    phone_number, real_otp = fetch_real_number_from_global_platforms(country_slug, service_name, country_info)
+    
+    masked_number = phone_number[:6] + "••••••••" + phone_number[-4:] if len(phone_number) > 10 else phone_number
+    country_code_abbrev = country_info['name'][:2].upper()
+    
+    channel_formatted_msg = (
+        f"⚡ 𝗧𝗥𝗜𝗖𝗞𝗦 𝗠𝗔𝗦𝗧𝗘𝗥 𝗕𝗢𝗧 𝗣𝗔𝗡𝗘𝗟 ⚡\n"
+        f"{country_info['flag']} #{country_code_abbrev} {app_icon} `{masked_number}` |\n"
+        f"🔊 English\n\n"
+        f"📲 Code {app_name} : `{real_otp[:3]}-{real_otp[3:]}`\n"
+        f"🔒 Never share this code with anyone\n\n"
+        f"📌 #Prefix: `/pre {phone_number.replace('+', '')[:6]}`"
+    )
+    
+    bot_username = bot.get_me().username
+    markup_channel = InlineKeyboardMarkup(row_width=2)
+    markup_channel.add(
+        InlineKeyboardButton(f"📋 نسخ الكود: {real_otp}", callback_data=f"copy_otp_{real_otp}")
+    )
+    markup_channel.add(
+        InlineKeyboardButton("🤖 البوت الرسمي", url=f"https://t.me/{bot_username}"),
+        InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
+    )
+    
+    try:
+        bot.send_message(CHANNEL_LOG_ID, channel_formatted_msg, parse_mode="Markdown", reply_markup=markup_channel)
+    except Exception:
+        pass
+        
+    return phone_number, real_otp
 
 # --- 6. MESSAGE & COMMAND HANDLERS ---
 @bot.message_handler(commands=['start'])
@@ -345,7 +377,7 @@ def send_main_menu(chat_id, message_id=None):
         if message_id:
             bot.edit_message_text(welcome_text, chat_id, message_id, reply_markup=markup, parse_mode="Markdown")
         else:
-            bot.send_message(chat_id, welcome_text, reply_markup=welcome_text, parse_mode="Markdown")
+            bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
     except Exception:
         try:
             bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
@@ -437,22 +469,22 @@ def handle_queries(call):
             
             bot.answer_callback_query(call.id, "⚡ جاري سحب وتوليد الرقم والكود الفوري...", show_alert=True)
             
-            # جلب الرقم والكود الحقيقي أو المحاكى فوراً
-            phone_number, real_otp = fetch_real_number_from_global_platforms(cnt_info["slug"], service, cnt_info)
+            # سحب الرقم الفقيقي وتوليد كود التحقق وإرساله إلى القناة تلقائياً وعرضه للمستخدم
+            phone_number, real_otp = generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
             
-            # عرض الرقم والكود مباشرة داخل رسالة البوت للمستخدم (مطابق لصورة البوت الذي أرسلته)
+            # عرض الرقم والكود وصيغة التنسيق تماماً مثل البوت في الصورة
             user_display_text = (
-                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
+                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n"
                 f"📱 **التطبيق:** {app_icon} `{app_name}`\n\n"
-                f"🔢 **الرقم:** `{phone_number}`\n\n"
+                f"🔢 **الرقم:** `{phone_number}`\n"
                 f"🔑 **كود التحقق:** `{real_otp}`\n\n"
                 f"📋 *اضغط مطولاً لنسخ الرقم أو الكود*"
             )
             
-            # أزرار تفاعلية مطابقة لصورة البوت المطلوب (رقم جديد، جروب الأكواد، رجوع)
+            # أزرار مطابقة لصورة البوت المطلوبة تماماً (رقم جديد + جروب الأكواد + رجوع)
             markup_user = InlineKeyboardMarkup(row_width=2)
             markup_user.add(
-                InlineKeyboardButton("🔄 رقم جديد", callback_data="back_home"),
+                InlineKeyboardButton("🔄 رقم جديد", callback_data=call.data),
                 InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
             )
             markup_user.add(
