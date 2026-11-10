@@ -22,7 +22,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Professional Pro Panel Server is Active 24/7! ⚡"
+    return "⚡ Al-Moqana Ultimate Pro Panel Server is Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -330,7 +330,7 @@ def handle_all_text_messages(message):
             )
             bot.send_message(ADMIN_ID, f"⚙️ **لوحة التحكم الإدارية:**\n👥 إجمالي المشتركين: `{users_count}` مشترك.", reply_markup=markup_admin, parse_mode="Markdown")
 
-# --- 7. PROFESSIONAL PRO INTERFACE & MENUS (LIKE TARGET VIDEOS) ---
+# --- 7. EXACT TARGET VIDEO UI & FUNCTION BUTTONS ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -345,7 +345,7 @@ def get_main_reply_keyboard():
 
 def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
-    # أزرار التطبيقات بتصميم منظم واحترافي تماماً مثل الفيديوهات
+    # عرض التطبيقات والدول بنفس تنسيق الفيديو الاحترافي (أزرار الدوال المدمجة)
     markup.add(
         InlineKeyboardButton("🟢 WhatsApp", callback_data="app_whatsapp"),
         InlineKeyboardButton("✈️ Telegram", callback_data="app_telegram"),
@@ -353,7 +353,6 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("📘 Facebook", callback_data="app_facebook"),
         InlineKeyboardButton("❌ X (Twitter)", callback_data="app_twitter")
     )
-    # أزرار الدول الاحترافية
     markup.add(
         InlineKeyboardButton("🇮🇹 Italy", callback_data="cnt_italy"),
         InlineKeyboardButton("🇻🇪 Venezuela", callback_data="cnt_venezuela"),
@@ -364,10 +363,15 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("🇸🇮 Slovenia", callback_data="cnt_slovenia"),
         InlineKeyboardButton("🇺🇸 USA", callback_data="cnt_usa")
     )
+    # أزرار الإضافات والدوال الإضافية (مطابقة للفيديو)
+    markup.add(
+        InlineKeyboardButton("⚙️ تحديث اللوحة", callback_data="back_home"),
+        InlineKeyboardButton("🌐 جروب الأكواد", url=CHANNEL_URL)
+    )
     
     welcome_text = (
-        "✨ **مرحباً بك في لوحة الخدمات الذكية للأرقام المؤكدة** ✨\n\n"
-        "🔹 اختر التطبيق أو الدولة المطلوبة من الأزرار بالأسفل وسيقوم النظام بتوليد وسحب الرقم الفوري وإرساله مباشرة إلى قناتك الرسمية."
+        "⚡ **لوحة التحكم الذكية لخدمات الأرقام والتفعيل الفوري** ⚡\n\n"
+        "🔹 اختر التطبيق أو الدولة المطلوبة من الأزرار بالأسفل لتنفيذ العملية وسحب الرقم فوراً."
     )
     try:
         if message_id:
@@ -460,7 +464,7 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
             
-            # تنفيذ عملية الجلب والنشر الفوري في القناة
+            # تنفيذ عملية الجلب ونشر الرقم في القناة
             generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
             
             bot.answer_callback_query(call.id, "✅ تم معالجة طلبك وإرسال الرقم لقناة الأكواد!", show_alert=True)
@@ -486,7 +490,7 @@ def handle_queries(call):
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Professional Pro Panel Bot Engine is running 24/7 successfully!")
+    print("NumberNest Ultimate Pro Panel Bot Engine is running 24/7 successfully!")
 
     while True:
         try:
