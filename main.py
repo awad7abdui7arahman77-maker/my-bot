@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها الأرقام تلقائياً
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها نسخة الأرقام للاستشهد
 CHANNEL_URL = "https://t.me/hehsgvsvsv"  # قناتك المطلوبة للأكواد والجروب
 
 # مفاتيح الربط بالمنصات العالمية الحقيقية (ضع مفاتيحك هنا عندما تتوفر لديك)
@@ -195,36 +195,6 @@ def fetch_sms_generic(base_url, key, act_id):
         pass
     return f"{int(time.time()) % 900000 + 100000}"
 
-def generate_and_publish_number(country_slug, service_name, app_name, app_icon, country_info):
-    phone_number, real_otp = fetch_real_number_from_global_platforms(country_slug, service_name, country_info)
-    
-    masked_number = phone_number[:6] + "••••••••" + phone_number[-4:] if len(phone_number) > 10 else phone_number
-    country_code_abbrev = country_info['name'][:2].upper()
-    
-    channel_formatted_msg = (
-        f"⚡ 𝗧𝗥𝗜𝗖𝗞𝗦 𝗠𝗔𝗦𝗧𝗘𝗥 𝗕𝗢𝗧 𝗣𝗔𝗡𝗘𝗟 ⚡\n"
-        f"{country_info['flag']} #{country_code_abbrev} {app_icon} `{masked_number}` |\n"
-        f"🔊 English\n\n"
-        f"📲 Code {app_name} : `{real_otp[:3]}-{real_otp[3:]}`\n"
-        f"🔒 Never share this code with anyone\n\n"
-        f"📌 #Prefix: `/pre {phone_number.replace('+', '')[:6]}`"
-    )
-    
-    bot_username = bot.get_me().username
-    markup_channel = InlineKeyboardMarkup(row_width=2)
-    markup_channel.add(
-        InlineKeyboardButton(f"📋 نسخ الكود: {real_otp}", callback_data=f"copy_otp_{real_otp}")
-    )
-    markup_channel.add(
-        InlineKeyboardButton("🤖 البوت الرسمي", url=f"https://t.me/{bot_username}"),
-        InlineKeyboardButton("📢 قناة الأكواد", url=CHANNEL_URL)
-    )
-    
-    try:
-        bot.send_message(CHANNEL_LOG_ID, channel_formatted_msg, parse_mode="Markdown", reply_markup=markup_channel)
-    except Exception:
-        pass
-
 # --- 6. MESSAGE & COMMAND HANDLERS ---
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -345,7 +315,6 @@ def get_main_reply_keyboard():
 
 def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
-    # عرض التطبيقات والدول بنفس تنسيق الفيديو الاحترافي (أزرار الدوال المدمجة)
     markup.add(
         InlineKeyboardButton("🟢 WhatsApp", callback_data="app_whatsapp"),
         InlineKeyboardButton("✈️ Telegram", callback_data="app_telegram"),
@@ -363,7 +332,6 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("🇸🇮 Slovenia", callback_data="cnt_slovenia"),
         InlineKeyboardButton("🇺🇸 USA", callback_data="cnt_usa")
     )
-    # أزرار الإضافات والدوال الإضافية (مطابقة للفيديو)
     markup.add(
         InlineKeyboardButton("⚙️ تحديث اللوحة", callback_data="back_home"),
         InlineKeyboardButton("🌐 جروب الأكواد", url=CHANNEL_URL)
@@ -377,9 +345,12 @@ def send_main_menu(chat_id, message_id=None):
         if message_id:
             bot.edit_message_text(welcome_text, chat_id, message_id, reply_markup=markup, parse_mode="Markdown")
         else:
-            bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+            bot.send_message(chat_id, welcome_text, reply_markup=welcome_text, parse_mode="Markdown")
     except Exception:
-        pass
+        try:
+            bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+        except:
+            pass
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_queries(call):
@@ -464,28 +435,34 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
             
-            # تنفيذ عملية الجلب ونشر الرقم في القناة
-            generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
+            bot.answer_callback_query(call.id, "⚡ جاري سحب وتوليد الرقم والكود الفوري...", show_alert=True)
             
-            bot.answer_callback_query(call.id, "✅ تم معالجة طلبك وإرسال الرقم لقناة الأكواد!", show_alert=True)
+            # جلب الرقم والكود الحقيقي أو المحاكى فوراً
+            phone_number, real_otp = fetch_real_number_from_global_platforms(cnt_info["slug"], service, cnt_info)
             
+            # عرض الرقم والكود مباشرة داخل رسالة البوت للمستخدم (مطابق لصورة البوت الذي أرسلته)
             user_display_text = (
-                f"✅ **تم معالجة الطلب بنجاح وتوليد الرقم!**\n\n"
-                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n"
+                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
                 f"📱 **التطبيق:** {app_icon} `{app_name}`\n\n"
-                f"📢 **توجه فوراً إلى قناة الأكواد والجروب لاستلام الرقم وكود التحقق:**"
+                f"🔢 **الرقم:** `{phone_number}`\n\n"
+                f"🔑 **كود التحقق:** `{real_otp}`\n\n"
+                f"📋 *اضغط مطولاً لنسخ الرقم أو الكود*"
             )
             
-            markup_user = InlineKeyboardMarkup(row_width=1)
+            # أزرار تفاعلية مطابقة لصورة البوت المطلوب (رقم جديد، جروب الأكواد، رجوع)
+            markup_user = InlineKeyboardMarkup(row_width=2)
             markup_user.add(
-                InlineKeyboardButton("📢 الانتقال إلى قناة الأكواد والجروب 🔗", url=CHANNEL_URL),
-                InlineKeyboardButton("🔄 طلب رقم آخر", callback_data="back_home")
+                InlineKeyboardButton("🔄 رقم جديد", callback_data="back_home"),
+                InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
+            )
+            markup_user.add(
+                InlineKeyboardButton("🔙 رجوع", callback_data="back_home")
             )
             
             bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ حدث خطأ، يجدر المحاولة مجدداً.", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ حدث خطأ أثناء سحب الرقم، حاول مجدداً.", show_alert=True)
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
