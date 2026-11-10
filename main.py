@@ -22,7 +22,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Ultimate Multi-API Master Server is Active 24/7! ⚡"
+    return "⚡ Al-Moqana Professional Pro Panel Server is Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها الأرقام والأكواد تلقائياً
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها الأرقام تلقائياً
 CHANNEL_URL = "https://t.me/hehsgvsvsv"  # قناتك المطلوبة للأكواد والجروب
 
 # مفاتيح الربط بالمنصات العالمية الحقيقية (ضع مفاتيحك هنا عندما تتوفر لديك)
@@ -74,22 +74,22 @@ SUBSCRIPTION_CHANNELS = [
 ]
 
 APPS_DATA = {
-    "facebook": {"name": "Facebook", "app_icon": "📘", "service": "facebook"},
-    "huawei": {"name": "Huawei", "app_icon": "📱", "service": "huawei"},
-    "instagram": {"name": "Instagram", "app_icon": "📸", "service": "instagram"},
     "whatsapp": {"name": "WhatsApp", "app_icon": "🟢", "service": "whatsapp"},
-    "x": {"name": "X", "app_icon": "❌", "service": "twitter"}
+    "telegram": {"name": "Telegram", "app_icon": "✈️", "service": "telegram"},
+    "instagram": {"name": "Instagram", "app_icon": "📸", "service": "instagram"},
+    "facebook": {"name": "Facebook", "app_icon": "📘", "service": "facebook"},
+    "twitter": {"name": "X (Twitter)", "app_icon": "❌", "service": "twitter"}
 }
 
 COUNTRIES_DATA = {
+    "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"},
+    "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"},
     "ethiopia": {"name": "Ethiopia", "flag": "🇪🇹", "code": "251", "slug": "ethiopia"},
     "guinea": {"name": "Guinea", "flag": "🇬🇳", "code": "224", "slug": "guinea"},
-    "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"},
     "madagascar": {"name": "Madagascar", "flag": "🇲🇬", "code": "261", "slug": "madagascar"},
     "mali": {"name": "Mali", "flag": "🇲🇱", "code": "223", "slug": "mali"},
     "slovenia": {"name": "Slovenia", "flag": "🇸🇮", "code": "386", "slug": "slovenia"},
-    "testall": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"},
-    "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"}
+    "usa": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"}
 }
 
 BROADCAST_MODE = {}
@@ -140,7 +140,6 @@ def get_subscription_markup(user_id):
 
 # --- 5. ADVANCED MULTI-API GLOBAL NETWORK & SMS FUNCTIONS ---
 def fetch_real_number_from_global_platforms(country_slug, service_name, country_info):
-    # محاولة السحب الحقيقي من المنصات العالمية الكبرى إذا وُجدت المفاتيح
     for platform, key in API_KEYS.items():
         if key and "ضع_مفتاح" not in key:
             try:
@@ -165,7 +164,7 @@ def fetch_real_number_from_global_platforms(country_slug, service_name, country_
             except Exception:
                 continue
 
-    # محرك الاحتياط الذكي والفوري المطور محلياً لضمان سرعة الاستجابة وسلاسة البوت
+    # نظام المحاكاة الذكية والفوري المطور
     prefix_code = country_info["code"]
     phone_number = f"+{prefix_code}9{int(time.time() * 1000) % 90000000 + 10000000}"
     real_otp = f"{int(time.time()) % 900000 + 100000}"
@@ -203,22 +202,22 @@ def generate_and_publish_number(country_slug, service_name, app_name, app_icon, 
     country_code_abbrev = country_info['name'][:2].upper()
     
     channel_formatted_msg = (
-        f"TRICKS MASTAR BOT PANEL\n"
-        f"{country_info['flag']} #{country_code_abbrev} {app_icon} {masked_number} |\n"
+        f"⚡ 𝗧𝗥𝗜𝗖𝗞𝗦 𝗠𝗔𝗦𝗧𝗘𝗥 𝗕𝗢𝗧 𝗣𝗔𝗡𝗘𝗟 ⚡\n"
+        f"{country_info['flag']} #{country_code_abbrev} {app_icon} `{masked_number}` |\n"
         f"🔊 English\n\n"
-        f"Code {app_name} : {real_otp[:3]}-{real_otp[3:]}\n"
-        f"Never share this code with anyone\n\n"
-        f"# Prefix: /pre {phone_number.replace('+', '')[:6]}"
+        f"📲 Code {app_name} : `{real_otp[:3]}-{real_otp[3:]}`\n"
+        f"🔒 Never share this code with anyone\n\n"
+        f"📌 #Prefix: `/pre {phone_number.replace('+', '')[:6]}`"
     )
     
     bot_username = bot.get_me().username
     markup_channel = InlineKeyboardMarkup(row_width=2)
     markup_channel.add(
-        InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
+        InlineKeyboardButton(f"📋 نسخ الكود: {real_otp}", callback_data=f"copy_otp_{real_otp}")
     )
     markup_channel.add(
-        InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
-        InlineKeyboardButton("📢 Channel", url=CHANNEL_URL)
+        InlineKeyboardButton("🤖 البوت الرسمي", url=f"https://t.me/{bot_username}"),
+        InlineKeyboardButton("📢 قناة الأكواد", url=CHANNEL_URL)
     )
     
     try:
@@ -248,7 +247,7 @@ def start(message):
         return
     
     try:
-        bot.send_message(message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
+        bot.send_message(message.chat.id, "📌 أهلاً بك في لوحة التحكم الرئيسية:", reply_markup=get_main_reply_keyboard())
     except Exception:
         pass
     send_main_menu(message.chat.id)
@@ -264,7 +263,7 @@ def handle_all_text_messages(message):
                 bot.delete_message(message.chat.id, message.message_id)
                 warning_msg = bot.send_message(
                     message.chat.id, 
-                    f"⚠️ [{message.from_user.first_name}](tg://user?id={user_id})\nممنوع إرسال الروابط في المجموعة! 🚫", 
+                    f"⚠️ [{message.from_user.first_name}](tg://user?id={user_id})\nممنوع إرسال الروابط هنا! 🚫", 
                     parse_mode="Markdown"
                 )
                 time.sleep(5)
@@ -305,20 +304,20 @@ def handle_all_text_messages(message):
             return
         
         text = message.text
-        if text == "🌐 الدول والأرقام":
+        if text == "🌐 قسم الخدمات والأرقام":
             send_main_menu(message.chat.id)
-        elif text == "🛒 قسم الأرقام المدفوعة":
-            bot.send_message(message.chat.id, "🛍️ **قسم الأرقام المدفوعة الحصرية متاح عبر التواصل مع المطور مباشرة.**", parse_mode="Markdown")
+        elif text == "🛒 شحن رصيد / أرقام مدفوعة":
+            bot.send_message(message.chat.id, "🛍️ **لشحن الرصيد أو طلب أرقام مدفوعة حصرية، تواصل مع المطور مباشرة عبر الزر أدناه:**", reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 تواصل مع المطور", url=DEVELOPER_URL)), parse_mode="Markdown")
         elif text == "📢 مشاركة البوت":
             bot_info = bot.get_me()
-            share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}&text=أفضل%20بوت%20أرقام%20وأكواد!⚡"
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 إرسال رابط البوت", url=share_url))
-            bot.send_message(message.chat.id, "📢 **شارك البوت مع أصدقائك:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "👨‍💻 تواصل مع المطور":
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
-            bot.send_message(message.chat.id, "💬 **للتواصل مع المطور:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "🪪 استخراج ID":
-            bot.send_message(message.chat.id, f"🆔 **آيدي حسابك:** `{user_id}`", parse_mode="Markdown")
+            share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}&text=أقوى%20بوت%20تفعيل%20أرقام%20ووهامية%20وحقيقية!⚡"
+            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 نشر رابط البوت", url=share_url))
+            bot.send_message(message.chat.id, "📢 **شارك البوت مع أصدقائك في المجموعات والقنوات:**", reply_markup=markup, parse_mode="Markdown")
+        elif text == "👨‍💻 المطور الداعم":
+            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 التواصل المباشر مع المطور", url=DEVELOPER_URL))
+            bot.send_message(message.chat.id, "💬 **لأي استفسار أو دعم فني:**", reply_markup=markup, parse_mode="Markdown")
+        elif text == "🪪 ملفي الشخصي":
+            bot.send_message(message.chat.id, f"👤 **معلومات حسابك:**\n🆔 آيدي: `{user_id}`\n🟢 الحالة: مفعل ونشط", parse_mode="Markdown")
         elif text == "⚡ لوحة المطور":
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
@@ -326,47 +325,49 @@ def handle_all_text_messages(message):
             users_count = len(get_users_list())
             markup_admin = InlineKeyboardMarkup(row_width=1)
             markup_admin.add(
-                InlineKeyboardButton("📢 إذاعة رسالة لجميع المستخدمين", callback_data="admin_broadcast"),
-                InlineKeyboardButton("📊 إحصائيات البوت", callback_data="admin_stats")
+                InlineKeyboardButton("📢 إذاعة عامة للمستخدمين", callback_data="admin_broadcast"),
+                InlineKeyboardButton("📊 إحصائيات المشتركين", callback_data="admin_stats")
             )
-            bot.send_message(ADMIN_ID, f"⚙️ **لوحة تحكم المطور:**\n👥 إجمالي المشتركين: `{users_count}` عضو.", reply_markup=markup_admin, parse_mode="Markdown")
+            bot.send_message(ADMIN_ID, f"⚙️ **لوحة التحكم الإدارية:**\n👥 إجمالي المشتركين: `{users_count}` مشترك.", reply_markup=markup_admin, parse_mode="Markdown")
 
-# --- 7. INTERFACE & MENUS ---
+# --- 7. PROFESSIONAL PRO INTERFACE & MENUS (LIKE TARGET VIDEOS) ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
-        KeyboardButton("🌐 الدول والأرقام"),
-        KeyboardButton("🛒 قسم الأرقام المدفوعة"),
+        KeyboardButton("🌐 قسم الخدمات والأرقام"),
+        KeyboardButton("🛒 شحن رصيد / أرقام مدفوعة"),
         KeyboardButton("📢 مشاركة البوت"),
-        KeyboardButton("👨‍💻 تواصل مع المطور"),
-        KeyboardButton("🪪 استخراج ID"),
+        KeyboardButton("👨‍💻 المطور الداعم"),
+        KeyboardButton("🪪 ملفي الشخصي"),
         KeyboardButton("⚡ لوحة المطور")
     )
     return markup
 
 def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
+    # أزرار التطبيقات بتصميم منظم واحترافي تماماً مثل الفيديوهات
     markup.add(
-        InlineKeyboardButton("Facebook 📘 (3)", callback_data="app_facebook"),
-        InlineKeyboardButton("Huawei 📱 (1)", callback_data="app_huawei"),
-        InlineKeyboardButton("Instagram 📸 (2)", callback_data="app_instagram"),
-        InlineKeyboardButton("WhatsApp 🟢 (2)", callback_data="app_whatsapp"),
-        InlineKeyboardButton("X ❌ (1)", callback_data="app_x")
+        InlineKeyboardButton("🟢 WhatsApp", callback_data="app_whatsapp"),
+        InlineKeyboardButton("✈️ Telegram", callback_data="app_telegram"),
+        InlineKeyboardButton("📸 Instagram", callback_data="app_instagram"),
+        InlineKeyboardButton("📘 Facebook", callback_data="app_facebook"),
+        InlineKeyboardButton("❌ X (Twitter)", callback_data="app_twitter")
     )
+    # أزرار الدول الاحترافية
     markup.add(
-        InlineKeyboardButton("Ethiopia 🇪🇹", callback_data="cnt_ethiopia"),
-        InlineKeyboardButton("Guinea 🇬🇳", callback_data="cnt_guinea"),
-        InlineKeyboardButton("Italy 🇮🇹 (5)", callback_data="cnt_italy"),
-        InlineKeyboardButton("Madagascar 🇲🇬", callback_data="cnt_madagascar"),
-        InlineKeyboardButton("Mali 🇲🇱", callback_data="cnt_mali"),
-        InlineKeyboardButton("Slovenia 🇸🇮", callback_data="cnt_slovenia"),
-        InlineKeyboardButton("Test All 🔥", callback_data="cnt_testall"),
-        InlineKeyboardButton("Venezuela 🇻🇪 (7)", callback_data="cnt_venezuela")
+        InlineKeyboardButton("🇮🇹 Italy", callback_data="cnt_italy"),
+        InlineKeyboardButton("🇻🇪 Venezuela", callback_data="cnt_venezuela"),
+        InlineKeyboardButton("🇪🇹 Ethiopia", callback_data="cnt_ethiopia"),
+        InlineKeyboardButton("🇬🇳 Guinea", callback_data="cnt_guinea"),
+        InlineKeyboardButton("🇲🇬 Madagascar", callback_data="cnt_madagascar"),
+        InlineKeyboardButton("🇲🇱 Mali", callback_data="cnt_mali"),
+        InlineKeyboardButton("🇸🇮 Slovenia", callback_data="cnt_slovenia"),
+        InlineKeyboardButton("🇺🇸 USA", callback_data="cnt_usa")
     )
     
     welcome_text = (
-        "👋 **مرحباً بك يا صديقي في بوت الأرقام والحسابات!**\n"
-        "✅ اختر التطبيق أو الدولة من الأزرار بالأسفل وسيتم جلب الأرقام الحقيقية ونشرها فوراً في قناتنا الرسمية."
+        "✨ **مرحباً بك في لوحة الخدمات الذكية للأرقام المؤكدة** ✨\n\n"
+        "🔹 اختر التطبيق أو الدولة المطلوبة من الأزرار بالأسفل وسيقوم النظام بتوليد وسحب الرقم الفوري وإرساله مباشرة إلى قناتك الرسمية."
     )
     try:
         if message_id:
@@ -387,7 +388,7 @@ def handle_queries(call):
                 bot.delete_message(call.message.chat.id, call.message.message_id)
             except:
                 pass
-            bot.answer_callback_query(call.id, "✅ تم التحقق بنجاح، أهلاً بك!", show_alert=True)
+            bot.answer_callback_query(call.id, "✅ تم التحقق من اشتراكك بنجاح!", show_alert=True)
             try:
                 bot.send_message(call.message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
             except:
@@ -398,7 +399,7 @@ def handle_queries(call):
                 bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=get_subscription_markup(user_id))
             except Exception:
                 pass
-            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات المتبقية!", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات المطلوبة!", show_alert=True)
 
     elif call.data == "back_home":
         send_main_menu(call.message.chat.id, call.message.message_id)
@@ -408,30 +409,30 @@ def handle_queries(call):
             return bot.answer_callback_query(call.id, "❌ مخصص للمطور فقط.", show_alert=True)
         BROADCAST_MODE[ADMIN_ID] = True
         bot.answer_callback_query(call.id, "📢 تم تفعيل وضع الإذاعة")
-        bot.send_message(ADMIN_ID, "✍️ **أرسل الآن الرسالة أو الصورة أو الفيديو الذي تريد إذاعته لجميع المستخدمين:**", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, "✍️ **أرسل الآن الرسالة أو الإعلان المراد إذاعته لجميع الأعضاء:**", parse_mode="Markdown")
 
     elif call.data == "admin_stats":
         if user_id != ADMIN_ID:
             return
         users_count = len(get_users_list())
-        bot.answer_callback_query(call.id, f"📊 عدد المشتركين: {users_count}", show_alert=True)
+        bot.answer_callback_query(call.id, f"📊 إجمالي المشتركين: {users_count}", show_alert=True)
 
     elif call.data.startswith("app_"):
         app_key = call.data.replace("app_", "")
-        app_info = APPS_DATA.get(app_key, {"name": "Service", "service": "whatsapp", "app_icon": "📱"})
+        app_info = APPS_DATA.get(app_key, {"name": "WhatsApp", "service": "whatsapp", "app_icon": "🟢"})
         
         markup = InlineKeyboardMarkup(row_width=2)
         markup.add(
-            InlineKeyboardButton("Italy 🇮🇹", callback_data=f"getnum_{app_key}_italy"),
-            InlineKeyboardButton("Venezuela 🇻🇪", callback_data=f"getnum_{app_key}_venezuela"),
-            InlineKeyboardButton("Ethiopia 🇪🇹", callback_data=f"getnum_{app_key}_ethiopia"),
-            InlineKeyboardButton("Guinea 🇬🇳", callback_data=f"getnum_{app_key}_guinea")
+            InlineKeyboardButton("🇮🇹 Italy", callback_data=f"getnum_{app_key}_italy"),
+            InlineKeyboardButton("🇻🇪 Venezuela", callback_data=f"getnum_{app_key}_venezuela"),
+            InlineKeyboardButton("🇪🇹 Ethiopia", callback_data=f"getnum_{app_key}_ethiopia"),
+            InlineKeyboardButton("🇺🇸 USA", callback_data=f"getnum_{app_key}_usa")
         )
-        markup.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
+        markup.add(InlineKeyboardButton("🔙 رجوع للقائمة الرئيسية", callback_data="back_home"))
         
         try:
             bot.edit_message_text(
-                f"📂 **{app_info['name']}**\n🌐 **اختر الدولة للطلب:**",
+                f"📂 **خدمة تفعيل: {app_info['app_icon']} {app_info['name']}**\n🌐 **اختر الدولة المناسبة للطلب:**",
                 call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown"
             )
         except Exception:
@@ -439,7 +440,7 @@ def handle_queries(call):
 
     elif call.data.startswith("copy_otp_"):
         otp_val = call.data.replace("copy_otp_", "")
-        bot.answer_callback_query(call.id, f"✅ تم نسخ الكود \"{otp_val}\" إلى الحافظة بنجاح!", show_alert=True)
+        bot.answer_callback_query(call.id, f"✅ تم نسخ الكود: {otp_val}", show_alert=True)
 
     elif call.data.startswith("cnt_") or call.data.startswith("getnum_"):
         try:
@@ -459,33 +460,33 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
             
-            # جلب الرقم ونشره في القناة
+            # تنفيذ عملية الجلب والنشر الفوري في القناة
             generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
             
-            bot.answer_callback_query(call.id, "✅ تم جلب الرقم ونشره في القناة بنجاح!", show_alert=True)
+            bot.answer_callback_query(call.id, "✅ تم معالجة طلبك وإرسال الرقم لقناة الأكواد!", show_alert=True)
             
             user_display_text = (
-                f"🎉 **تم جلب الرقم الحقيقي ونشره بنجاح!**\n\n"
+                f"✅ **تم معالجة الطلب بنجاح وتوليد الرقم!**\n\n"
                 f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n"
                 f"📱 **التطبيق:** {app_icon} `{app_name}`\n\n"
-                f"📢 **توجه إلى قناة الأكواد والجروب لاستلام الرقم وكود التحقق فوريًا:**"
+                f"📢 **توجه فوراً إلى قناة الأكواد والجروب لاستلام الرقم وكود التحقق:**"
             )
             
             markup_user = InlineKeyboardMarkup(row_width=1)
             markup_user.add(
-                InlineKeyboardButton("📢 رابط قناة الأكواد والجروب 🔗", url=CHANNEL_URL),
+                InlineKeyboardButton("📢 الانتقال إلى قناة الأكواد والجروب 🔗", url=CHANNEL_URL),
                 InlineKeyboardButton("🔄 طلب رقم آخر", callback_data="back_home")
             )
             
             bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ خطأ، حاول مجدداً.", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ حدث خطأ، يجدر المحاولة مجدداً.", show_alert=True)
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Ultimate Multi-API Master Bot Engine is running 24/7 successfully!")
+    print("NumberNest Professional Pro Panel Bot Engine is running 24/7 successfully!")
 
     while True:
         try:
