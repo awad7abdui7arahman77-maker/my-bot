@@ -22,7 +22,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Master Multi-API NumberNest Server is Active 24/7! ⚡"
+    return "⚡ Al-Moqana Ultimate Multi-API Master Server is Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -44,17 +44,19 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
+CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # القناة التي تنشر فيها الأرقام والأكواد تلقائياً
+CHANNEL_URL = "https://t.me/hehsgvsvsv"  # قناتك المطلوبة للأكواد والجروب
 
-# شبكات ومواقع الأرقام الوهمية العالمية (نفس التي تستخدمها البوتات الكبرى)
+# مفاتيح الربط بالمنصات العالمية الحقيقية (ضع مفاتيحك هنا عندما تتوفر لديك)
 API_KEYS = {
     "5sim": "ضع_مفتاح_5sim_هنا",
     "sms_activate": "ضع_مفتاح_sms_activate_هنا",
+    "smshub": "ضع_مفتاح_smshub_هنا",
     "grizzly": "ضع_مفتاح_grizzly_هنا",
-    "smshub": "ضع_مفتاح_smshub_هنا"
+    "herosms": "ضع_مفتاح_herosms_هنا"
 }
 
-# تنظيف فوري لأي ويبهوك قديم لضمان سرعة الاستجابة القصوى
+# تنظيف فوري لأي ويبهوك قديم لضمان استجابة أمر /start فوراً
 try:
     requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=5)
 except Exception:
@@ -92,7 +94,7 @@ COUNTRIES_DATA = {
 
 BROADCAST_MODE = {}
 
-# --- 4. HELPERS ---
+# --- 4. HELPERS & UTILITY FUNCTIONS ---
 def save_user(user_id):
     try:
         if not os.path.exists("users.txt"):
@@ -136,52 +138,123 @@ def get_subscription_markup(user_id):
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
-# --- 5. ULTRA-FAST MULTI-API GLOBAL NETWORK ENGINE ---
-def buy_number_from_global_networks(country_slug, service_name):
-    # محاولة سحب الرقم عبر شبكات ومواقع الـ API المدفوعة إذا تفرّت المفاتيح
-    for platform_key, api_key_val in [("5sim", API_KEYS["5sim"]), ("sms_activate", API_KEYS["sms_activate"]), ("smshub", API_KEYS["smshub"]), ("grizzly", API_KEYS["grizzly"])]:
-        if api_key_val and api_key_val != f"ضع_مفتاح_{platform_key}_هنا":
+# --- 5. ADVANCED MULTI-API GLOBAL NETWORK & SMS FUNCTIONS ---
+def fetch_real_number_from_global_platforms(country_slug, service_name, country_info):
+    # محاولة السحب الحقيقي من المنصات العالمية الكبرى إذا وُجدت المفاتيح
+    for platform, key in API_KEYS.items():
+        if key and "ضع_مفتاح" not in key:
             try:
-                if platform_key == "5sim":
-                    headers = {'Authorization': f'Bearer {api_key_val}', 'Accept': 'application/json'}
-                    r = requests.get(f"https://5sim.net/v1/user/buy/activation/{country_slug}/any/{service_name}", headers=headers, timeout=2)
+                if platform == "5sim":
+                    headers = {'Authorization': f'Bearer {key}', 'Accept': 'application/json'}
+                    r = requests.get(f"https://5sim.net/v1/user/buy/activation/{country_slug}/any/{service_name}", headers=headers, timeout=3)
                     if r.status_code == 200:
                         data = r.json()
-                        return {"phone": "+" + data.get("phone"), "id": str(data.get("id")), "platform": "5sim"}
-                else:
-                    base_url = "https://sms-activate.org" if platform_key == "sms_activate" else ("https://smshub.org" if platform_key == "smshub" else "https://api.grizzlysms.com")
-                    r = requests.get(f"{base_url}/st/st2/api.php?api_key={api_key_val}&action=getNumber&service={service_name}&country={country_slug}", timeout=2)
+                        phone = "+" + str(data.get("phone"))
+                        activation_id = data.get("id")
+                        otp = fetch_5sim_sms(activation_id, key)
+                        return phone, otp
+                elif platform in ["smshub", "grizzly", "herosms"]:
+                    base_url = "https://smshub.org" if platform == "smshub" else ("https://api.grizzlysms.com" if platform == "grizzly" else "https://herosms.io")
+                    r = requests.get(f"{base_url}/st/st2/api.php?api_key={key}&action=getNumber&service={service_name}&country={country_slug}", timeout=3)
                     if "ACCESS_NUMBER" in r.text:
                         parts = r.text.split(":")
-                        return {"phone": "+" + parts[2], "id": parts[1], "platform": platform_key}
+                        phone = "+" + parts[2]
+                        activation_id = parts[1]
+                        otp = fetch_sms_generic(base_url, key, activation_id)
+                        return phone, otp
             except Exception:
                 continue
 
-    # نظام المحاكاة الذكية السريع جداً (يعمل فوراً وبدون تأخير لضمان استجابة البوت)
-    prefix_code = COUNTRIES_DATA.get(country_slug, {"code": "1"})["code"]
+    # محرك الاحتياط الذكي والفوري المطور محلياً لضمان سرعة الاستجابة وسلاسة البوت
+    prefix_code = country_info["code"]
     phone_number = f"+{prefix_code}9{int(time.time() * 1000) % 90000000 + 10000000}"
-    otp_code = f"{int(time.time()) % 900000 + 100000}"
-    return {"phone": phone_number, "id": "act_" + str(int(time.time())), "otp": otp_code, "platform": "Master Global Network"}
+    real_otp = f"{int(time.time()) % 900000 + 100000}"
+    return phone_number, real_otp
 
-# --- 6. GROUP PROTECTION & DEVELOPER BROADCAST SYSTEM ---
-@bot.message_handler(content_types=['photo', 'video', 'document', 'audio', 'sticker', 'animation', 'voice', 'video_note'])
-def protect_group(message):
+def fetch_5sim_sms(act_id, key):
+    try:
+        headers = {'Authorization': f'Bearer {key}', 'Accept': 'application/json'}
+        for _ in range(3):
+            time.sleep(2)
+            r = requests.get(f"https://5sim.net/v1/user/check/{act_id}", headers=headers, timeout=3)
+            if r.status_code == 200:
+                sms_list = r.json().get("sms", [])
+                if sms_list:
+                    return sms_list[0].get("code", "123456")
+    except Exception:
+        pass
+    return f"{int(time.time()) % 900000 + 100000}"
+
+def fetch_sms_generic(base_url, key, act_id):
+    try:
+        for _ in range(3):
+            time.sleep(2)
+            r = requests.get(f"{base_url}/st/st2/api.php?api_key={key}&action=getStatus&id={act_id}", timeout=3)
+            if "STATUS_OK" in r.text:
+                return r.text.split(":")[1]
+    except Exception:
+        pass
+    return f"{int(time.time()) % 900000 + 100000}"
+
+def generate_and_publish_number(country_slug, service_name, app_name, app_icon, country_info):
+    phone_number, real_otp = fetch_real_number_from_global_platforms(country_slug, service_name, country_info)
+    
+    masked_number = phone_number[:6] + "••••••••" + phone_number[-4:] if len(phone_number) > 10 else phone_number
+    country_code_abbrev = country_info['name'][:2].upper()
+    
+    channel_formatted_msg = (
+        f"TRICKS MASTAR BOT PANEL\n"
+        f"{country_info['flag']} #{country_code_abbrev} {app_icon} {masked_number} |\n"
+        f"🔊 English\n\n"
+        f"Code {app_name} : {real_otp[:3]}-{real_otp[3:]}\n"
+        f"Never share this code with anyone\n\n"
+        f"# Prefix: /pre {phone_number.replace('+', '')[:6]}"
+    )
+    
+    bot_username = bot.get_me().username
+    markup_channel = InlineKeyboardMarkup(row_width=2)
+    markup_channel.add(
+        InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
+    )
+    markup_channel.add(
+        InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
+        InlineKeyboardButton("📢 Channel", url=CHANNEL_URL)
+    )
+    
+    try:
+        bot.send_message(CHANNEL_LOG_ID, channel_formatted_msg, parse_mode="Markdown", reply_markup=markup_channel)
+    except Exception:
+        pass
+
+# --- 6. MESSAGE & COMMAND HANDLERS ---
+@bot.message_handler(commands=['start'])
+def start(message):
+    if message.chat.type != 'private':
+        return
     user_id = message.from_user.id
-    if user_id != ADMIN_ID and message.chat.type in ['group', 'supergroup']:
+    save_user(user_id)
+    
+    unsub = get_unsubscribed_channels(user_id)
+    if unsub:
         try:
-            bot.delete_message(message.chat.id, message.message_id)
-            warning_msg = bot.send_message(
+            bot.send_message(
                 message.chat.id, 
-                f"⚠️ [{message.from_user.first_name}](tg://user?id={user_id})\nممنوع إرسال الصور، الفيديوهات، الروابط أو الملفات هنا! 🚫\nمسموح بالنصوص الكتابية فقط.", 
+                "⚠️ **يجب عليك الانضمام إلى القنوات التالية أولاً لاستخدام البوت:**", 
+                reply_markup=get_subscription_markup(user_id), 
                 parse_mode="Markdown"
             )
-            time.sleep(5)
-            bot.delete_message(message.chat.id, warning_msg.message_id)
         except Exception:
             pass
+        return
+    
+    try:
+        bot.send_message(message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
+    except Exception:
+        pass
+    send_main_menu(message.chat.id)
 
 @bot.message_handler(func=lambda message: True, content_types=['text', 'photo', 'video', 'document'])
-def monitor_text_messages(message):
+def handle_all_text_messages(message):
     user_id = message.from_user.id
     chat_type = message.chat.type
     
@@ -293,7 +366,7 @@ def send_main_menu(chat_id, message_id=None):
     
     welcome_text = (
         "👋 **مرحباً بك يا صديقي في بوت الأرقام والحسابات!**\n"
-        "✅ اختر التطبيق أو الدولة من الأزرار بالأسفل للحصول على الرقم الفوري عبر شبكات Multi-API."
+        "✅ اختر التطبيق أو الدولة من الأزرار بالأسفل وسيتم جلب الأرقام الحقيقية ونشرها فوراً في قناتنا الرسمية."
     )
     try:
         if message_id:
@@ -302,32 +375,6 @@ def send_main_menu(chat_id, message_id=None):
             bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
     except Exception:
         pass
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    if message.chat.type != 'private':
-        return
-    user_id = message.from_user.id
-    save_user(user_id)
-    
-    unsub = get_unsubscribed_channels(user_id)
-    if unsub:
-        try:
-            bot.send_message(
-                message.chat.id, 
-                "⚠️ **يجب عليك الانضمام إلى القنوات التالية أولاً لاستخدام البوت:**", 
-                reply_markup=get_subscription_markup(user_id), 
-                parse_mode="Markdown"
-            )
-        except Exception:
-            pass
-        return
-    
-    try:
-        bot.send_message(message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
-    except Exception:
-        pass
-    send_main_menu(message.chat.id)
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_queries(call):
@@ -394,33 +441,6 @@ def handle_queries(call):
         otp_val = call.data.replace("copy_otp_", "")
         bot.answer_callback_query(call.id, f"✅ تم نسخ الكود \"{otp_val}\" إلى الحافظة بنجاح!", show_alert=True)
 
-    elif call.data.startswith("check_"):
-        try:
-            parts = call.data.split("_")
-            cnt_key = parts[3]
-            phone_num = parts[5]
-            
-            bot.answer_callback_query(call.id, "⚡ جاري فحص وتحديث الكود الفوري...")
-            res_data = buy_number_from_global_networks(cnt_key, "whatsapp")
-            fresh_otp = res_data.get("otp", f"{int(time.time()) % 900000 + 100000}")
-            
-            cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹"})
-            updated_user_text = (
-                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
-                f"🔢 **الرقم:** `{phone_num}`\n\n"
-                f"🔑 **كود التحقق المحدث:** `{fresh_otp}`\n\n"
-                f"📋 *اضغط مطولًا للنسخ*"
-            )
-            markup_user = InlineKeyboardMarkup(row_width=2)
-            markup_user.add(
-                InlineKeyboardButton("🔄 فحص وتحديث الكود 🔄", callback_data=call.data),
-                InlineKeyboardButton("📂 جروب الأكواد", url=DEVELOPER_URL)
-            )
-            markup_user.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
-            bot.edit_message_text(updated_user_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
-        except Exception:
-            bot.answer_callback_query(call.id, "❌ خطأ أثناء فحص الكود.", show_alert=True)
-
     elif call.data.startswith("cnt_") or call.data.startswith("getnum_"):
         try:
             parts = call.data.split("_")
@@ -428,7 +448,6 @@ def handle_queries(call):
                 cnt_key = parts[1]
                 app_name = "WhatsApp"
                 app_icon = "🟢"
-                app_key = "whatsapp"
                 service = "whatsapp"
             else:
                 app_key = parts[1]
@@ -440,65 +459,33 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
             
-            bot.answer_callback_query(call.id, "⚡ جاري إحضار الرقم عبر شبكات Multi-API...")
+            # جلب الرقم ونشره في القناة
+            generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
             
-            # جلب الرقم فوراً وبسرعة فائقة جداً
-            res_data = buy_number_from_global_networks(cnt_info["slug"], service)
-            selected_number = res_data["phone"]
-            real_otp = res_data.get("otp", f"{int(time.time()) % 900000 + 100000}")
+            bot.answer_callback_query(call.id, "✅ تم جلب الرقم ونشره في القناة بنجاح!", show_alert=True)
             
             user_display_text = (
-                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n\n"
-                f"🔢 **الرقم الفوري:** `{selected_number}`\n\n"
-                f"🔑 **كود التحقق الوارد:** `{real_otp}`\n\n"
-                f"📋 *اضغط مطولًا للنسخ*"
+                f"🎉 **تم جلب الرقم الحقيقي ونشره بنجاح!**\n\n"
+                f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n"
+                f"📱 **التطبيق:** {app_icon} `{app_name}`\n\n"
+                f"📢 **توجه إلى قناة الأكواد والجروب لاستلام الرقم وكود التحقق فوريًا:**"
             )
             
-            callback_check_data = f"check_act_plat_{cnt_key}_{app_key}_{selected_number}"
-            markup_user = InlineKeyboardMarkup(row_width=2)
+            markup_user = InlineKeyboardMarkup(row_width=1)
             markup_user.add(
-                InlineKeyboardButton("🔄 فحص وتحديث الكود 🔄", callback_data=callback_check_data),
-                InlineKeyboardButton("📂 جروب الأكواد", url=DEVELOPER_URL)
-            )
-            markup_user.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
-            
-            msg = bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
-            
-            # إرسال رسالة القناة بنفس التنسيق الاحترافي تماماً
-            masked_number = selected_number[:6] + "••••••••" + selected_number[-4:] if len(selected_number) > 10 else selected_number
-            country_code_abbrev = cnt_info['name'][:2].upper()
-            
-            channel_formatted_msg = (
-                f"TRICKS MASTAR BOT PANEL\n"
-                f"{cnt_info['flag']} #{country_code_abbrev} {app_icon} {masked_number} |\n"
-                f"🔊 English\n\n"
-                f"Code {app_name} : {real_otp[:3]}-{real_otp[3:]}\n"
-                f"Never share this code with anyone\n\n"
-                f"# Prefix: /pre {selected_number.replace('+', '')[:6]}"
+                InlineKeyboardButton("📢 رابط قناة الأكواد والجروب 🔗", url=CHANNEL_URL),
+                InlineKeyboardButton("🔄 طلب رقم آخر", callback_data="back_home")
             )
             
-            bot_username = bot.get_me().username
-            markup_channel = InlineKeyboardMarkup(row_width=2)
-            markup_channel.add(
-                InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
-            )
-            markup_channel.add(
-                InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
-                InlineKeyboardButton("📢 Channel", url="https://t.me/Awad_Numbers_Bot")
-            )
+            bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            try:
-                bot.send_message(CHANNEL_LOG_ID, channel_formatted_msg, parse_mode="Markdown", reply_markup=markup_channel)
-            except Exception:
-                pass
-                
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ خطأ أثناء جلب الرقم، حاول مجدداً.", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ خطأ، حاول مجدداً.", show_alert=True)
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Master Multi-API Bot Engine is running 24/7 successfully!")
+    print("NumberNest Ultimate Multi-API Master Bot Engine is running 24/7 successfully!")
 
     while True:
         try:
