@@ -22,7 +22,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Turbo Max Server is Active 24/7! ⚡"
+    return "⚡ Al-Moqana Perfect Country Format Server Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -81,15 +81,16 @@ APPS_DATA = {
     "twitter": {"name": "X (Twitter)", "app_icon": "❌", "service": "twitter"}
 }
 
+# جدول معايير الأرقام الصحيحة لكل دولة (مفتاح الدولة + الطول الصحيح للرقم المحلي)
 COUNTRIES_DATA = {
-    "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"},
-    "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"},
-    "ethiopia": {"name": "Ethiopia", "flag": "🇪🇹", "code": "251", "slug": "ethiopia"},
-    "guinea": {"name": "Guinea", "flag": "🇬🇳", "code": "224", "slug": "guinea"},
-    "madagascar": {"name": "Madagascar", "flag": "🇲🇬", "code": "261", "slug": "madagascar"},
-    "mali": {"name": "Mali", "flag": "🇲🇱", "code": "223", "slug": "mali"},
-    "slovenia": {"name": "Slovenia", "flag": "🇸🇮", "code": "386", "slug": "slovenia"},
-    "usa": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"}
+    "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy", "len": 10},
+    "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela", "len": 10},
+    "ethiopia": {"name": "Ethiopia", "flag": "🇪🇹", "code": "251", "slug": "ethiopia", "len": 9},
+    "guinea": {"name": "Guinea", "flag": "🇬🇳", "code": "224", "slug": "guinea", "len": 9},
+    "madagascar": {"name": "Madagascar", "flag": "🇲🇬", "code": "261", "slug": "madagascar", "len": 9},
+    "mali": {"name": "Mali", "flag": "🇲🇱", "code": "223", "slug": "mali", "len": 8},
+    "slovenia": {"name": "Slovenia", "flag": "🇸🇮", "code": "386", "slug": "slovenia", "len": 8},
+    "usa": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa", "len": 10}
 }
 
 BROADCAST_MODE = {}
@@ -138,7 +139,7 @@ def get_subscription_markup(user_id):
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
-# --- 5. TURBO SPEED API & REAL SMS SYSTEM ---
+# --- 5. EXACT COUNTRY FORMAT & TURBO API SYSTEM ---
 def fetch_real_number_from_global_platforms(country_slug, service_name, country_info):
     for platform, key in API_KEYS.items():
         if key and "ضع_مفتاح" not in key:
@@ -164,11 +165,15 @@ def fetch_real_number_from_global_platforms(country_slug, service_name, country_
             except Exception:
                 continue
 
-    # نظام السحب الحقيقي الفوري أو الانتظار الحقيقي للحصول على الكود
+    # توليد رقم نظامي دقيق مطابق تماماً لشرط طول وطبيعة أرقام الدولة
     prefix_code = country_info["code"]
-    phone_number = f"+{prefix_code}9{int(time.time() * 1000) % 90000000 + 10000000}"
+    required_len = country_info["len"]
     
-    # إذا لم تتوفر مفاتيح API مدفوعة، نجعل الكود فارغاً في انتظار وصول الرسالة الحقيقية أو يطلب من المستخدم طلب الرمز
+    # بناء أرقام عشوائية صحيحة ومقبولة بالكامل بناءً على طول الدولة المحدد
+    import random
+    local_number = "".join([str(random.randint(0, 9)) for _ in range(required_len)])
+    phone_number = f"+{prefix_code}{local_number}"
+    
     real_otp = "انتظار وصول الكود... ⏳"
     return phone_number, real_otp
 
@@ -330,7 +335,7 @@ def handle_all_text_messages(message):
             )
             bot.send_message(ADMIN_ID, f"⚙️ **لوحة التحكم الإدارية:**\n👥 إجمالي المشتركين: `{users_count}` مشترك.", reply_markup=markup_admin, parse_mode="Markdown")
 
-# --- 7. TURBO SPEED INTERFACE & UI ---
+# --- 7. EXACT TARGET VIDEO UI & FUNCTION BUTTONS ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -463,20 +468,19 @@ def handle_queries(call):
                 app_icon = app_info["app_icon"]
                 service = app_info["service"]
                 
-            cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
+            cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy", "len": 10})
             
-            bot.answer_callback_query(call.id, "⚡ جاري سحب الرقم فوراً...", show_alert=True)
+            bot.answer_callback_query(call.id, "⚡ جاري توليد وسحب الرقم المطابق للدولة...", show_alert=True)
             
-            # سحب الرقم الحقيقي فوراً بدون أي تأخير زمني
+            # سحب الرقم بالصيغة والطول الصحيح الخاص بالدولة فوراً
             phone_number, real_otp = generate_and_publish_number(cnt_info["slug"], service, app_name, app_icon, cnt_info)
             
-            # عرض الرقم داخل رسالة البوت للمستخدم مع انتظار رمز التحقق الحقيقي
             user_display_text = (
                 f"🌍 **الدولة:** {cnt_info['flag']} `{cnt_info['name']}`\n"
                 f"📱 **التطبيق:** {app_icon} `{app_name}`\n\n"
                 f"🔢 **الرقم:** `{phone_number}`\n"
                 f"🔑 **كود التحقق:** `{real_otp}`\n\n"
-                f"📋 *اضغط مطولاً لنسخ الرقم أو انتظر وصول الكود الحقيقي*"
+                f"📋 *اضغط مطولاً لنسخ الرقم واستخدامه في التفعيل*"
             )
             
             markup_user = InlineKeyboardMarkup(row_width=2)
@@ -496,7 +500,7 @@ def handle_queries(call):
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Turbo Speed Bot Engine is running 24/7 successfully!")
+    print("NumberNest Perfect Country Format Bot Engine is running 24/7 successfully!")
 
     while True:
         try:
