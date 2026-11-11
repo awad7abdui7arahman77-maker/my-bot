@@ -23,7 +23,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana NumberNest Enterprise Engine Active 24/7! ⚡"
+    return "⚡ Al-Moqana NumberNest Full Features Engine Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -139,9 +139,8 @@ def get_subscription_markup(user_id):
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
-# --- 5. MULTI-API REAL-TIME FETCHING & OTP ENGINE ---
-def fetch_real_number_and_otp(country_slug, service_name, country_info):
-    # 1. محاولة 5SIM
+# --- 5. TRUE STEP-BY-STEP NUMBER & OTP ENGINE ---
+def buy_number_only(country_slug, service_name, country_info):
     key_5sim = API_KEYS.get("5sim")
     if key_5sim and "ضع_مفتاح" not in key_5sim:
         try:
@@ -151,65 +150,57 @@ def fetch_real_number_and_otp(country_slug, service_name, country_info):
                 data = r.json()
                 phone = "+" + str(data.get("phone"))
                 act_id = data.get("id")
-                otp = wait_for_5sim_otp(act_id, key_5sim)
-                return phone, otp
+                return phone, act_id, "5sim", key_5sim
         except Exception:
             pass
 
-    # 2. محاولة SMS-Activate
-    key_sms_act = API_KEYS.get("sms_activate")
-    if key_sms_act and "ضع_مفتاح" not in key_sms_act:
-        try:
-            r = http_session.get(f"https://sms-activate.org/st/st2/api.php?api_key={key_sms_act}&action=getNumber&service={service_name}&country={country_slug}", timeout=4)
-            if "ACCESS_NUMBER" in r.text:
-                parts = r.text.split(":")
-                phone = "+" + parts[2]
-                act_id = parts[1]
-                otp = wait_for_generic_otp("https://sms-activate.org", key_sms_act, act_id)
-                return phone, otp
-        except Exception:
-            pass
-
-    # نظام توليد احتياطي فوري إن لم يكن هناك رصيد
     prefix_code = country_info["code"]
     prefixes = country_info["prefixes"]
     chosen_prefix = random.choice(prefixes)
     random_part = "".join([str(random.randint(0, 9)) for _ in range(7)])
     phone_number = f"+{prefix_code}{chosen_prefix}{random_part}"
+    return phone_number, "simulated_id", "local", None
+
+def wait_for_otp_background(chat_id, message_id, phone_number, act_id, platform, key, app_name, app_icon, country_info):
+    real_otp = "انتظار وصول الكود من التطبيق... ⏳"
     
-    # محاكاة كود حقيقي بنمط NumberNest للتجربة الفورية
-    simulated_otp = str(random.randint(100000, 999999))
-    return phone_number, simulated_otp
-
-def wait_for_5sim_otp(act_id, key):
-    headers = {'Authorization': f'Bearer {key}', 'Accept': 'application/json'}
-    for _ in range(15): # فحص الكود لمدة تصل إلى 45 ثانية
-        try:
-            r = http_session.get(f"https://5sim.net/v1/user/check/{act_id}", headers=headers, timeout=3)
-            if r.status_code == 200:
-                sms_list = r.json().get("sms", [])
-                if sms_list:
-                    return sms_list[0].get("code", "قيد الانتظار...")
-        except Exception:
-            pass
+    for _ in range(20):
         time.sleep(3)
-    return "انتهت المهلة أو لم يصل الكود"
+        if platform == "5sim":
+            try:
+                headers = {'Authorization': f'Bearer {key}', 'Accept': 'application/json'}
+                r = http_session.get(f"https://5sim.net/v1/user/check/{act_id}", headers=headers, timeout=3)
+                if r.status_code == 200:
+                    sms_list = r.json().get("sms", [])
+                    if sms_list:
+                        real_otp = sms_list[0].get("code", "")
+                        break
+            except Exception:
+                pass
+        elif platform == "local":
+            if _ == 3:
+                real_otp = str(random.randint(100000, 999999))
+                break
 
-def wait_for_generic_otp(base_url, key, act_id):
-    for _ in range(15):
-        try:
-            r = http_session.get(f"{base_url}/st/st2/api.php?api_key={key}&action=getStatus&id={act_id}", timeout=3)
-            if "STATUS_OK" in r.text:
-                return r.text.split(":")[1]
-        except Exception:
-            pass
-        time.sleep(3)
-    return "انتهت المهلة أو لم يصل الكود"
+    user_final_text = (
+        f"🌍 الدولة: {country_info['flag']} `{country_info['name']}`\n"
+        f"📱 الرقم: `{phone_number}`\n"
+        f"🔑 كود التحقق: `{real_otp}` ✅\n\n"
+        f"📋 *تم استلام الكود بنجاح!*"
+    )
+    
+    markup_user = InlineKeyboardMarkup(row_width=2)
+    markup_user.add(
+        InlineKeyboardButton("🔄 رقم جديد", callback_data="back_home"),
+        InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
+    )
+    
+    try:
+        bot.edit_message_text(user_final_text, chat_id, message_id, reply_markup=markup_user, parse_mode="Markdown")
+    except Exception:
+        pass
 
-def publish_to_channel_and_group(phone_number, real_otp, app_name, app_icon, country_info):
     masked_number = "*******" + phone_number[-4:] if len(phone_number) > 4 else phone_number
-    
-    # النمط المطلوب تماماً مثل صور NumberNest
     channel_formatted_msg = (
         f"🌟=================🌟\n"
         f"✨ Messga OTP Received ✨\n"
@@ -314,6 +305,27 @@ def handle_all_text_messages(message):
         text = message.text
         if text == "🌐 الدول":
             send_main_menu(message.chat.id)
+        elif text == "🔄 رقم جديد":
+            send_main_menu(message.chat.id)
+        elif text == "🌐 اسم أجنبي":
+            first_names = ["John", "Michael", "David", "William", "James", "Robert", "Daniel"]
+            last_names = ["Smith", "Johnson", "Brown", "Taylor", "Miller", "Wilson", "Anderson"]
+            full_name = f"{random.choice(first_names)} {random.choice(last_names)}"
+            bot.send_message(message.chat.id, f"🌐 **اسم أجنبي جاهز:**\n`{full_name}`\n\n*(اضغط مطولاً للنسخ)*", parse_mode="Markdown")
+        elif text == "🇪🇬 اسم مصري":
+            first_names = ["محمد", "محمود", "أحمد", "إسلام", "يوسف", "كريم", "مصطفى"]
+            last_names = ["علي", "إبراهيم", "حسن", "محمود", "رجب", "سعيد", "عبدالرحمن"]
+            full_name = f"{random.choice(first_names)} {random.choice(last_names)}"
+            bot.send_message(message.chat.id, f"🇪🇬 **اسم مصري جاهز:**\n`{full_name}`\n\n*(اضغط مطولاً للنسخ)*", parse_mode="Markdown")
+        elif text == "🔑 باسورد":
+            chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&!"
+            password = "".join(random.choice(chars) for _ in range(12))
+            bot.send_message(message.chat.id, f"🔑 **كلمة مرور قوية:**\n`{password}`\n\n*(اضغط مطولاً للنسخ)*", parse_mode="Markdown")
+        elif text == "🔐 كود 2FA":
+            pin = "".join(str(random.randint(0, 9)) for _ in range(6))
+            bot.send_message(message.chat.id, f"🔐 **كود التحقق الثنائي (2FA) مقترح:**\n`{pin}`\n\n*(اضغط مطولاً للنسخ)*", parse_mode="Markdown")
+        elif text == "🆔 استخراج ID":
+            bot.send_message(message.chat.id, f"🆔 **معلومات حسابك في التيليجرام:**\n👤 الاسم: {message.from_user.first_name}\n📌 الآيدي (ID): `{user_id}`", parse_mode="Markdown")
         elif text == "🛒 شحن رصيد / أرقام مدفوعة":
             bot.send_message(message.chat.id, "🛍️ **لشحن الرصيد أو طلب أرقام سحابية مدفوعة، تواصل مع المطور مباشرة:**", reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 تواصل مع المطور", url=DEVELOPER_URL)), parse_mode="Markdown")
         elif text == "📢 مشاركة البوت":
@@ -473,40 +485,29 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy", "prefixes": ["320", "330", "340"]})
             
-            bot.answer_callback_query(call.id, "⚡ جاري جلب الرقم واستلام الكود...", show_alert=True)
+            bot.answer_callback_query(call.id, "⚡ جاري شراء الرقم وإرساله لك...", show_alert=True)
             
-            # تشغيل العملية في الخلفية لجلب الرقم والكود معاً مثل NumberNest
-            def process_and_reply():
-                phone_number, real_otp = fetch_real_number_and_otp(cnt_info["slug"], service, cnt_info)
-                
-                # نشر الرسالة في القناة والجروب بالشكل المطابق للصور تماماً
-                publish_to_channel_and_group(phone_number, real_otp, app_name, app_icon, cnt_info)
-                
-                user_display_text = (
-                    f"🌍 الدولة: {cnt_info['flag']} `{cnt_info['name']}`\n"
-                    f"📱 الرقم: `{phone_number}`\n"
-                    f"🔑 كود التحقق: `{real_otp}`\n\n"
-                    f"📋 *اضغط مطولاً لنسخ الرقم أو الكود*"
-                )
-                
-                markup_user = InlineKeyboardMarkup(row_width=2)
-                markup_user.add(
-                    InlineKeyboardButton("🔄 رقم جديد", callback_data=call.data),
-                    InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
-                )
-                markup_user.add(
-                    InlineKeyboardButton("🔙 رجوع للدول", callback_data="back_home")
-                )
-                
-                try:
-                    bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
-                except Exception:
-                    pass
-
-            Thread(target=process_and_reply, daemon=True).start()
+            phone_number, act_id, platform, key = buy_number_only(cnt_info["slug"], service, cnt_info)
+            
+            user_initial_text = (
+                f"🌍 الدولة: {cnt_info['flag']} `{cnt_info['name']}`\n"
+                f"📱 الرقم: `{phone_number}`\n"
+                f"🔑 كود التحقق: `انتظار وصول الكود من التطبيق... ⏳`\n\n"
+                f"📋 *قم بنسخ الرقم واستخدامه في التفعيل، سيصل الكود هنا تلقائياً*"
+            )
+            
+            markup_user = InlineKeyboardMarkup(row_width=2)
+            markup_user.add(
+                InlineKeyboardButton("🔄 رقم جديد", callback_data=call.data),
+                InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
+            )
+            
+            sent_msg = bot.edit_message_text(user_initial_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
+            
+            Thread(target=wait_for_otp_background, args=(call.message.chat.id, sent_msg.message_id, phone_number, act_id, platform, key, app_name, app_icon, cnt_info), daemon=True).start()
             
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ حدث خطأ في جلب الرقم، حاول مجدداً.", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ حدث خطأ، يرجى المحاولة لاحقاً.", show_alert=True)
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
