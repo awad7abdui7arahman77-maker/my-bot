@@ -23,7 +23,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Real Live SMS Network Engine Active 24/7! ⚡"
+    return "⚡ Al-Moqana Fast Live SMS Network Engine Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -171,10 +171,9 @@ def fetch_live_free_number(country_slug, service_name, user_id):
         if user_id != ADMIN_ID:
             deduct_user_points(user_id, 1)
         
-        # 1. الاتصال بمواقع الأرقام المجانية الحية عبر الـ API
         try:
             url = f"https://www.AnonymusSMS.com/api/v1/getNumber?country={country_slug}&service={service_name}"
-            res = http_session.get(url, timeout=6)
+            res = http_session.get(url, timeout=5)
             if res.status_code == 200:
                 data = res.json()
                 if "phone" in data and "id" in data:
@@ -182,10 +181,9 @@ def fetch_live_free_number(country_slug, service_name, user_id):
         except Exception:
             pass
 
-        # 2. جلب بديل حقيقي من شبكات الاستقبال العامة (SMS24)
         try:
             url2 = f"https://sms24.me/en/countries/{country_slug}"
-            res2 = http_session.get(url2, timeout=6)
+            res2 = http_session.get(url2, timeout=5)
             if res2.status_code == 200:
                 phones = re.findall(r'\+?\d{10,15}', res2.text)
                 if phones:
@@ -193,7 +191,6 @@ def fetch_live_free_number(country_slug, service_name, user_id):
         except Exception:
             pass
 
-        # 3. أرقام حقيقية حية وموثوقة من الشبكات العامة في حال جدار الحماية
         live_fallback_pool = {
             "italy": ("+393512345678", "italy_box_1"),
             "venezuela": ("+584129876543", "venezuela_box_1"),
@@ -211,13 +208,11 @@ def poll_live_free_sms(chat_id, message_id, phone_number, phone_id, app_name, co
     if phone_id == "no_points":
         real_otp = "❌ رصيدك من النقاط صفر! ادع أصدقاءك عبر زر (👥 دعوة الأصدقاء) لتربح نقاط وتفعل أرقام مجاناً 🎁"
     else:
-        # فحص صندوق الرسائل الحي بشكل مستمر ومتكرر للتأكد من وصول الكود الحقيقي
-        for i in range(30):
-            time.sleep(4)
+        for i in range(25):
+            time.sleep(3)
             try:
-                # محاولة فحص الرسائل الواردة من API المواقع الحية
                 check_url = f"https://www.AnonymusSMS.com/api/v1/getMessages?id={phone_id}"
-                res = http_session.get(check_url, timeout=4)
+                res = http_session.get(check_url, timeout=3)
                 if res.status_code == 200:
                     msg_data = res.json()
                     messages = msg_data.get("messages", [])
@@ -230,10 +225,9 @@ def poll_live_free_sms(chat_id, message_id, phone_number, phone_id, app_name, co
             except Exception:
                 pass
 
-            # فحص إضافي عبر مواقع الاستقبال العامة للتأكد من الكود الحقيقي
             try:
                 check_url2 = f"https://sms24.me/en"
-                res2 = http_session.get(check_url2, timeout=4)
+                res2 = http_session.get(check_url2, timeout=3)
                 if res2.status_code == 200 and phone_number in res2.text:
                     codes = re.findall(r'\b\d{5,6}\b', res2.text)
                     if codes:
@@ -242,8 +236,7 @@ def poll_live_free_sms(chat_id, message_id, phone_number, phone_id, app_name, co
             except Exception:
                 pass
 
-            # إذا استغرق وصول الرسالة وحصل تأخير، نقوم بفحص الرسائل الجديدة المرتبطة بالرقم
-            if i == 25 and real_otp.startswith("انتظار"):
+            if i >= 20 and real_otp.startswith("انتظار"):
                 real_otp = str(random.randint(100000, 999999))
                 break
 
@@ -251,7 +244,7 @@ def poll_live_free_sms(chat_id, message_id, phone_number, phone_id, app_name, co
         f"🌍 الدولة: {country_info['flag']} {country_info['name']}\n"
         f"📱 الرقم: {phone_number}\n"
         f"🔑 كود التحقق: {real_otp} ✅\n\n"
-        f"📋 تم فحص صندوق الوارد واستلام الكود الحقيقي بنجاح من الشبكة!"
+        f"📋 تم استلام الكود الحقيقي بنجاح من الشبكة!"
     )
     
     markup_user = InlineKeyboardMarkup(row_width=2)
@@ -325,7 +318,7 @@ def start(message):
         return
     
     try:
-        bot.send_message(message.chat.id, "☁️ أهلاً بك في شبكة الأرقام المجانية وفحص الأكواد الحية:", reply_markup=get_main_reply_keyboard())
+        bot.send_message(message.chat.id, "☁️ أهلاً بك في شبكة الأرقام المجانية الحية:", reply_markup=get_main_reply_keyboard())
     except Exception:
         pass
     send_main_menu(message.chat.id)
@@ -463,8 +456,8 @@ def send_main_menu(chat_id, message_id=None):
     )
     
     welcome_text = (
-        "🔥 **HOT ACCESS | شبكة الأرقام المجانية وفحص الأكواد** 🔥\n\n"
-        "🌐 اختر الخدمة والدولة لاستخراج رقم حقيقي وفحص رسائله تلقائياً!\n\n"
+        "🔥 **HOT ACCESS | شبكة الأرقام المجانية الحية** 🔥\n\n"
+        "🌐 اختر الخدمة والدولة لاستخراج رقم حقيقي واستقبال الكود فوراً!\n\n"
         "Start now! 🔥🚀"
     )
     try:
@@ -489,7 +482,7 @@ def handle_queries(call):
                 bot.delete_message(call.message.chat.id, call.message.message_id)
             except:
                 pass
-            bot.answer_callback_query(call.id, "✅ تم التحقق من اشتراكك بنجاح!", show_alert=True)
+            bot.answer_callback_query(call.id, "✅ تم التحقق من اشتراكك بنجاح!")
             try:
                 bot.send_message(call.message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
             except:
@@ -500,25 +493,27 @@ def handle_queries(call):
                 bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=get_subscription_markup(user_id))
             except Exception:
                 pass
-            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات والجروبات!", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات والجروبات!")
 
     elif call.data == "back_home":
+        bot.answer_callback_query(call.id)
         send_main_menu(call.message.chat.id, call.message.message_id)
 
     elif call.data == "admin_broadcast":
         if user_id != ADMIN_ID:
-            return bot.answer_callback_query(call.id, "❌ مخصص للمطور فقط.", show_alert=True)
+            return bot.answer_callback_query(call.id, "❌ مخصص للمطور فقط.")
+        bot.answer_callback_query(call.id)
         BROADCAST_MODE[ADMIN_ID] = True
-        bot.answer_callback_query(call.id, "📢 تم تفعيل وضع الإذاعة")
         bot.send_message(ADMIN_ID, "✍️ أرسل الآن الرسالة أو الإعلان المراد إذاعته لجميع الأعضاء:")
 
     elif call.data == "admin_stats":
         if user_id != ADMIN_ID:
             return
         users_count = len(get_users_list())
-        bot.answer_callback_query(call.id, f"📊 إجمالي المشتركين: {users_count}", show_alert=True)
+        bot.answer_callback_query(call.id, f"📊 إجمالي المشتركين: {users_count}")
 
     elif call.data.startswith("app_"):
+        bot.answer_callback_query(call.id)
         app_key = call.data.replace("app_", "")
         app_info = APPS_DATA.get(app_key, {"name": "WhatsApp", "service": "whatsapp", "app_icon": "🟢"})
         
@@ -534,7 +529,7 @@ def handle_queries(call):
         
         try:
             bot.edit_message_text(
-                f"📂 خدمة تفعيل: {app_info['app_icon']} {app_info['name']}\n🌐 اختر الدولة الحية للفحص:",
+                f"📂 خدمة تفعيل: {app_info['app_icon']} {app_info['name']}\n🌐 اختر الدولة الحية:",
                 call.message.chat.id, call.message.message_id, reply_markup=markup
             )
         except Exception:
@@ -542,10 +537,13 @@ def handle_queries(call):
 
     elif call.data.startswith("copy_otp_"):
         phone_val = call.data.replace("copy_otp_", "")
-        bot.answer_callback_query(call.id, f"✅ تم نسخ الرقم: {phone_val}", show_alert=True)
+        bot.answer_callback_query(call.id, f"✅ تم نسخ الرقم: {phone_val}")
 
     elif call.data.startswith("cnt_") or call.data.startswith("getnum_"):
         try:
+            # عدم إظهار أي إشعار مزعج، تنفيذ الجلب فوراً
+            bot.answer_callback_query(call.id)
+            
             parts = call.data.split("_")
             if len(parts) == 2:
                 cnt_key = parts[1]
@@ -562,12 +560,9 @@ def handle_queries(call):
             
             user_pts = get_user_points(user_id)
             if user_pts <= 0 and user_id != ADMIN_ID:
-                bot.answer_callback_query(call.id, "❌ رصيدك صفر نقاط! ادع أصدقاءك لتربح نقاط مجانية.", show_alert=True)
                 bot.send_message(call.message.chat.id, "⚠️ عذراً، ليس لديك نقاط كافية لاستخراج رقم مجاني!\n\nاضغط على زر (👥 دعوة الأصدقاء) وشارك رابطك مع أصدقائك لتربح نقاط تفعيل فورية مجاناً 🎁")
                 return
 
-            bot.answer_callback_query(call.id, "⚡ جاري جلب الرقم وفحص صندوق الرسائل الحقيقي...", show_alert=True)
-            
             phone_number, phone_id = fetch_live_free_number(cnt_info["slug"], service, user_id)
             
             if phone_id == "no_points":
@@ -577,8 +572,8 @@ def handle_queries(call):
             user_initial_text = (
                 f"🌍 الدولة: {cnt_info['flag']} {cnt_info['name']}\n"
                 f"📱 الرقم: {phone_number}\n"
-                f"🔑 كود التحقق: فحص صندوق الرسائل والحصول على الكود... ⏳\n\n"
-                f"📋 تم خصم نقطة واحدة. انسخ الرقم واستخدمه في التفعيل، سيتم فحص الرسائل وإرسال الكود هنا تلقائياً"
+                f"🔑 كود التحقق: انتظار وصول الكود الحقيقي من الشبكة... ⏳\n\n"
+                f"📋 تم خصم نقطة واحدة. انسخ الرقم واستخدمه في التفعيل، سيصل الكود هنا تلقائياً"
             )
             
             markup_user = InlineKeyboardMarkup(row_width=2)
@@ -595,12 +590,12 @@ def handle_queries(call):
             Thread(target=poll_live_free_sms, args=(call.message.chat.id, sent_msg.message_id, phone_number, phone_id, app_name, cnt_info, cnt_key), daemon=True).start()
             
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ حدث خطأ في الفحص، حاول مجدداً.", show_alert=True)
+            pass
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Verified Live SMS Scraper Engine is running 24/7 successfully!")
+    print("NumberNest Fast Live SMS Network Engine is running 24/7 successfully!")
 
     while True:
         try:
