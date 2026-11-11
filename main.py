@@ -56,14 +56,6 @@ http_session.headers.update({
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 DEVELOPER_URL = "https://t.me/awad3210"
 
-SUBSCRIPTION_CHANNELS = [
-    {"id": "@v_o_lti", "name": "📢 قناة تفعيل الحسابات", "url": "https://t.me/v_o_lti"},
-    {"id": "@jzbznznx", "name": "📢 قناة العبارات والخدمات", "url": "https://t.me/jzbznznx"},
-    {"id": "@breakthroughawad210", "name": "📢 تعليم اختراق الجوالات", "url": "https://t.me/breakthroughawad210"},
-    {"id": "@sn6hdbdn19dndw", "name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw"},
-    {"id": "@hehsgvsvsv", "name": "📢 جروب الأكواد والاتصال", "url": "https://t.me/hehsgvsvsv"}
-]
-
 APPS_DATA = {
     "whatsapp": {"name": "WhatsApp", "app_icon": "🟢", "service": "whatsapp"},
     "telegram": {"name": "Telegram", "app_icon": "✈️", "service": "telegram"},
@@ -72,7 +64,7 @@ APPS_DATA = {
     "twitter": {"name": "X (Twitter)", "app_icon": "❌", "service": "twitter"}
 }
 
-# --- موسوعة ضخمة تضم عشرات الدول والمواقع العالمية ---
+# --- موسوعة ضخمة تضم عشرات الدول والمواع العالمية ---
 COUNTRIES_DATA = {
     "italy": {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"},
     "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"},
@@ -128,28 +120,6 @@ def write_users_dict(users):
 
 def get_users_list():
     return list(get_users_dict().keys())
-
-def get_unsubscribed_channels(user_id):
-    if user_id == ADMIN_ID: 
-        return []
-    unsubscribed = []
-    for ch in SUBSCRIPTION_CHANNELS:
-        ch_id = ch["id"]
-        try:
-            status = bot.get_chat_member(ch_id, user_id).status
-            if status in ['left', 'kicked']:
-                unsubscribed.append(ch)
-        except Exception:
-            pass
-    return unsubscribed
-
-def get_subscription_markup(user_id):
-    unsub_list = get_unsubscribed_channels(user_id)
-    markup = InlineKeyboardMarkup(row_width=1)
-    for ch in unsub_list:
-        markup.add(InlineKeyboardButton(ch["name"], url=ch["url"]))
-    markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
-    return markup
 
 # --- 5. MULTI-SOURCE GLOBAL SMS SCRAPER & POLLING ---
 def fetch_live_free_number(country_slug, service_name):
@@ -237,7 +207,6 @@ def poll_global_live_sms(chat_id, message_id, phone_number, phone_id, app_name, 
             real_otp = str(random.randint(100000, 999999))
             break
 
-    # 1. إرسال وتحديث الرسالة للمستخدم في البوت فوراً
     user_final_text = (
         f"🌟 **الشبكة العالمية الملكية للأرقام** 🌟\n\n"
         f"🌍 الدولة: {country_info['flag']} {country_info['name']}\n"
@@ -266,7 +235,6 @@ def poll_global_live_sms(chat_id, message_id, phone_number, phone_id, app_name, 
         except:
             pass
 
-    # 2. إرسال الكود والرقم إلى القناة العامة في نفس الثانية بالتوازي
     masked_number = "*******" + phone_number[-4:] if len(phone_number) > 4 else phone_number
     channel_formatted_msg = (
         f"👑=================👑\n"
@@ -307,18 +275,6 @@ def start(message):
             pass
 
     save_user(user_id, referrer_id)
-    
-    unsub = get_unsubscribed_channels(user_id)
-    if unsub:
-        try:
-            bot.send_message(
-                message.chat.id, 
-                "⚠️ عذراً عزيزي، يجب عليك الاشتراك في القنوات التالية أولاً لاستخدام البوت المجاني:", 
-                reply_markup=get_subscription_markup(user_id)
-            )
-        except Exception:
-            pass
-        return
     
     try:
         bot.send_message(message.chat.id, "👑 أهلاً بك في البوت العالمي للأرقام المجانية الحية:", reply_markup=get_main_reply_keyboard())
@@ -367,15 +323,6 @@ def handle_all_text_messages(message):
             bot.send_message(ADMIN_ID, f"✅ تمت الإذاعة بنجاح!\n📬 وصلت إلى {sent_count} مستخدم.")
             return
 
-        unsub = get_unsubscribed_channels(user_id)
-        if unsub:
-            bot.send_message(
-                message.chat.id, 
-                "⚠️ يجب عليك الاشتراك في القنوات المتبقية لاستخدام البوت:", 
-                reply_markup=get_subscription_markup(user_id)
-            )
-            return
-        
         text = message.text
         if text == "🌐 دول الأرقام":
             send_main_menu(message.chat.id)
@@ -446,7 +393,6 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("📘 Facebook", callback_data="app_facebook"),
         InlineKeyboardButton("❌ X (Twitter)", callback_data="app_twitter")
     )
-    # عرض موسع لجميع الدول المتاحة
     markup.add(
         InlineKeyboardButton("🇮🇹 Italy", callback_data="cnt_italy"),
         InlineKeyboardButton("🇻🇪 Venezuela", callback_data="cnt_venezuela"),
@@ -470,7 +416,7 @@ def send_main_menu(chat_id, message_id=None):
     
     welcome_text = (
         "👑 **MEGA GLOBAL ACCESS | الشبكة العالمية للأرقام المجانية** 👑\n\n"
-        "🌐 اختر الخدمة وأي دولة من القائمة الضخمة لجلب رقم حقيقي ومضمون وتلقي الأكواد فوراً وبلا حدود!\n\n"
+        "🌐 اختر الخدمة وأي الدولة من القائمة الضخمة لجلب رقم حقيقي ومضمون وتلقي الأكواد فوراً وبلا حدود!\n\n"
         "Start now! 🔥🚀"
     )
     try:
@@ -488,27 +434,7 @@ def send_main_menu(chat_id, message_id=None):
 def handle_queries(call):
     user_id = call.from_user.id
     
-    if call.data == "verify_subs":
-        unsub = get_unsubscribed_channels(user_id)
-        if not unsub:
-            try:
-                bot.delete_message(call.message.chat.id, call.message.message_id)
-            except:
-                pass
-            bot.answer_callback_query(call.id, "✅ تم التحقق من اشتراكك بنجاح!")
-            try:
-                bot.send_message(call.message.chat.id, "📌 القائمة الرئيسية:", reply_markup=get_main_reply_keyboard())
-            except:
-                pass
-            send_main_menu(call.message.chat.id)
-        else:
-            try:
-                bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=get_subscription_markup(user_id))
-            except Exception:
-                pass
-            bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في كافة القنوات أولاً!")
-
-    elif call.data == "back_home":
+    if call.data == "back_home":
         bot.answer_callback_query(call.id)
         send_main_menu(call.message.chat.id, call.message.message_id)
 
@@ -531,7 +457,6 @@ def handle_queries(call):
         app_info = APPS_DATA.get(app_key, {"name": "WhatsApp", "service": "whatsapp", "app_icon": "🟢"})
         
         markup = InlineKeyboardMarkup(row_width=3)
-        # إظهار جميع الدول المتاحة لاختيارها بعد اختيار التطبيق
         country_buttons = []
         for c_key, c_info in COUNTRIES_DATA.items():
             country_buttons.append(InlineKeyboardButton(f"{c_info['flag']} {c_info['name']}", callback_data=f"getnum_{app_key}_{c_key}"))
@@ -589,7 +514,6 @@ def handle_queries(call):
             
             sent_msg = bot.edit_message_text(user_initial_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # تشغيل فحص وإرسال الأكواد بالتوازي للبوت وللقناة في نفس اللحظة
             Thread(target=poll_global_live_sms, args=(call.message.chat.id, sent_msg.message_id, phone_number, phone_id, app_name, cnt_info, cnt_key), daemon=True).start()
             
         except Exception as e:
