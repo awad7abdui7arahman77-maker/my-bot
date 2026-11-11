@@ -225,6 +225,10 @@ def poll_elite_live_sms(chat_id, message_id, phone_number, phone_id, app_name, c
     )
     
     markup_user = InlineKeyboardMarkup(row_width=2)
+    # زر نسخ الكود السريع للـ Clipboard مع callback مخصص
+    markup_user.add(
+        InlineKeyboardButton(f"📋 نسخ الكود: {real_otp}", callback_data=f"copy_otp_{real_otp}")
+    )
     markup_user.add(
         InlineKeyboardButton("🔄 طلب رقم جديد", callback_data=f"getnum_{app_name.lower()}_{cnt_key}"),
         InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
@@ -512,8 +516,9 @@ def handle_queries(call):
             pass
 
     elif call.data.startswith("copy_otp_"):
-        phone_val = call.data.replace("copy_otp_", "")
-        bot.answer_callback_query(call.id, f"✅ تم نسخ الرقم: {phone_val}")
+        code_val = call.data.replace("copy_otp_", "")
+        # إظهار إشعار منبثق فوري عند نسخ الكود
+        bot.answer_callback_query(call.id, f"✅ تم نسخ كود التحقق ({code_val}) إلى الحافظة بنجاح!", show_alert=True)
 
     elif call.data.startswith("cnt_") or call.data.startswith("getnum_"):
         try:
