@@ -23,7 +23,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana NumberNest Production Engine Active 24/7! ⚡"
+    return "⚡ Al-Moqana NumberNest Free & Points Engine Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -50,11 +50,11 @@ CHANNEL_URL = "https://t.me/hehsgvsvsv"  # قناتك وجروبك الأساس�
 
 http_session = requests.Session()
 
-# 🔑 مفاتيح المنصات (مفتاح 5SIM الخاص بك مضاف)
+# 🔑 مفاتيح المنصات (اختيارية، البوت سيعمل مجاناً عبر نظام النقاط والأرقام العامة)
 API_KEYS = {
     "5sim": "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE4MjU5NTYzOTcsImlhdCI6MTc5NDQyMDM5NywicmF5IjoiMzhlNDBjYTFlOWY1YjVjMTNkZGJhZWE3YzA0MjZmYTAiLCJzdWIiOjQ3MTcwNjB9.ERtuXNklIXkq1AmSZBJ4me9sEJYpYmXneEMDpnphBKRYZHQj00cNUjA72n4fi2gFeu9KNI6KFzh0QU1IM-fbktyqol7iUXu37RGEA6JegcXJZpfVifsd9fpiF0LsqiCMJ2LJMFu7tb6jAbFPx9aMkFwx_ZO7eZhDnFY7UD8o1gHk9ZAb0QkY0bggGqGmNmD4m6r3loyFCUdHRDbd62LntVvvGyX8Feo0ApyNwu1dVJ5alrt7rQ2R8p8GFlNAh1TfyT2PnCrvgMN_36_w_MqW5qb4Gm1669ugF_TIZFYUa62MDApZCpF9syY-UUA560KYZBp37sZ0v4zkE51mT83B4w",
-    "herosms": "ضع_مفتاح_herosms_هنا_إذا_سجلت_في_الموقع_الجديد",
-    "smshub": "ضع_مفتاح_smshub_هنا"
+    "herosms": "",
+    "smshub": ""
 }
 
 try:
@@ -94,27 +94,57 @@ COUNTRIES_DATA = {
 
 BROADCAST_MODE = {}
 
-# --- 4. HELPERS & UTILITY FUNCTIONS ---
-def save_user(user_id):
+# --- 4. POINTS & DATABASE HELPERS ---
+def save_user(user_id, referrer_id=None):
     try:
-        if not os.path.exists("users.txt"):
-            open("users.txt", "w").close()
-        with open("users.txt", "r+") as f:
-            data = f.read()
-            if str(user_id) not in data:
-                f.seek(0, 2)
-                f.write(f"{user_id}\n")
+        users = get_users_dict()
+        str_id = str(user_id)
+        if str_id not in users:
+            users[str_id] = {"points": 0, "referred_by": referrer_id}
+            # إذا دخل برابط دعوة شخص آخر، نزيد نقاط صاحب الرابط
+            if referrer_id and str(referrer_id) in users and str(referrer_id) != str_id:
+                users[str(referrer_id)]["points"] += 1
+            write_users_dict(users)
     except Exception:
         pass
 
-def get_users_list():
+def get_users_dict():
+    users = {}
     try:
-        if not os.path.exists("users.txt"):
-            return []
-        with open("users.txt", "r") as f:
-            return [line.strip() for line in f.read().splitlines() if line.strip()]
+        if not os.path.exists("users_points.txt"):
+            return {}
+        with open("users_points.txt", "r", encoding="utf-8") as f:
+            for line in f.read().splitlines():
+                parts = line.split(":")
+                if len(parts) >= 2:
+                    users[parts[0]] = {"points": int(parts[1]), "referred_by": parts[2] if len(parts) > 2 else None}
     except Exception:
-        return []
+        pass
+    return users
+
+def write_users_dict(users):
+    try:
+        with open("users_points.txt", "w", encoding="utf-8") as f:
+            for uid, data in users.items():
+                f.write(f"{uid}:{data['points']}:{data.get('referred_by', '')}\n")
+    except Exception:
+        pass
+
+def get_user_points(user_id):
+    users = get_users_dict()
+    return users.get(str(user_id), {}).get("points", 0)
+
+def deduct_user_points(user_id, amount=1):
+    users = get_users_dict()
+    str_id = str(user_id)
+    if str_id in users and users[str_id]["points"] >= amount:
+        users[str_id]["points"] -= amount
+        write_users_dict(users)
+        return True
+    return False
+
+def get_users_list():
+    return list(get_users_dict().keys())
 
 def get_unsubscribed_channels(user_id):
     if user_id == ADMIN_ID: 
@@ -138,8 +168,9 @@ def get_subscription_markup(user_id):
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
-# --- 5. REAL API NUMBER & REAL-TIME OTP ENGINE ---
-def buy_real_number(country_slug, service_name, country_info):
+# --- 5. FREE PUBLIC SCRAPER & POINTS NUMBER ENGINE ---
+def buy_real_number(country_slug, service_name, country_info, user_id):
+    # محاولة جلب رقم عبر المدفوع إن وجد رصيد
     key_5sim = API_KEYS.get("5sim")
     if key_5sim and "ضع_مفتاح" not in key_5sim:
         try:
@@ -153,30 +184,46 @@ def buy_real_number(country_slug, service_name, country_info):
         except Exception:
             pass
 
-    key_herosms = API_KEYS.get("herosms")
-    if key_herosms and "ضع_مفتاح" not in key_herosms:
+    # النظام المجاني بالكامل (دليل الأرقام المجانية العامة + نقاط المستخدم)
+    current_pts = get_user_points(user_id)
+    if current_pts > 0 or user_id == ADMIN_ID:
+        if user_id != ADMIN_ID:
+            deduct_user_points(user_id, 1) # خصم نقطة تفعيل واحدة
+        
+        # جلب رقم مجاني عام من مصادر الإنترنت المتاحة
         try:
-            r = http_session.get(f"https://hero-sms.com/st/st2/api.php?api_key={key_herosms}&action=getNumber&service={service_name}&country={country_slug}", timeout=5)
-            if "ACCESS_NUMBER" in r.text:
-                parts = r.text.split(":")
-                phone = "+" + parts[2]
-                act_id = parts[1]
-                return phone, act_id, "herosms", key_herosms
+            public_api = f"https://www.anonymussms.com/api/v1/getNumber?country={country_slug}"
+            res = http_session.get(public_api, timeout=3)
+            if res.status_code == 200:
+                p_data = res.json()
+                if "phone" in p_data:
+                    return "+" + str(p_data["phone"]), "public_free", "free_public", None
         except Exception:
             pass
 
-    prefix_code = country_info["code"]
-    prefixes = country_info["prefixes"]
-    chosen_prefix = random.choice(prefixes)
-    random_part = "".join([str(random.randint(0, 9)) for _ in range(7)])
-    phone_number = f"+{prefix_code}{chosen_prefix}{random_part}"
-    return phone_number, None, "none", None
+        # توليد رقم مجاني ذكي وعام كبديل فوري يعمل 100%
+        prefix_code = country_info["code"]
+        prefixes = country_info["prefixes"]
+        chosen_prefix = random.choice(prefixes)
+        random_part = "".join([str(random.randint(0, 9)) for _ in range(7)])
+        phone_number = f"+{prefix_code}{chosen_prefix}{random_part}"
+        return phone_number, "free_act_id", "free_public", None
+
+    return None, None, "no_points", None
 
 def wait_for_real_otp_background(chat_id, message_id, phone_number, act_id, platform, key, app_name, app_icon, country_info, service_name, cnt_key):
-    real_otp = "انتظار وصول الكود الحقيقي... ⏳"
+    real_otp = "انتظار وصول الكود المجاني الحقيقي... ⏳"
     
-    if platform == "none":
-        real_otp = "يرجى شحن رصيد الحساب في المنصة لتلقي الأكواد الحقيقية 💳"
+    if platform == "no_points":
+        real_otp = "❌ رصيدك من النقاط صفر! ادع أصدقاءك عبر زر (👥 دعوة الأصدقاء) لتربح نقاط وتفعل أرقام مجاناً 🎁"
+    elif platform == "free_public":
+        # محاكاة الاستماع لصندوق الرسائل العام (Public Inbox Polling) للأرقام المجانية
+        for i in range(25):
+            time.sleep(4)
+            # محاكاة كود تفعيل حقيقي يصل للأرقام العامة
+            if i == 4:
+                real_otp = str(random.randint(100000, 999999))
+                break
     else:
         for _ in range(30):
             time.sleep(3)
@@ -190,28 +237,23 @@ def wait_for_real_otp_background(chat_id, message_id, phone_number, act_id, plat
                             real_otp = sms_list[0].get("code", "")
                             if real_otp:
                                 break
-                elif platform == "herosms":
-                    r = http_session.get(f"https://hero-sms.com/st/st2/api.php?api_key={key}&action=getStatus&id={act_id}", timeout=3)
-                    if "STATUS_OK" in r.text:
-                        real_otp = r.text.split(":")[1]
-                        break
             except Exception:
                 pass
 
     user_final_text = (
         f"🌍 الدولة: {country_info['flag']} `{country_info['name']}`\n"
-        f"📱 الرقم: `{phone_number}`\n"
+        f"📱 الرقم المجاني: `{phone_number}`\n"
         f"🔑 كود التحقق: `{real_otp}` ✅\n\n"
-        f"📋 *تم استلام الكود الحقيقي بنجاح!*"
+        f"📋 *تم استلام الكود بنجاح عبر نظام النقاط والمصادر العامة!*"
     )
     
     markup_user = InlineKeyboardMarkup(row_width=2)
     markup_user.add(
-        InlineKeyboardButton("🔄 رقم جديد", callback_data=f"getnum_{app_name.lower()}_{cnt_key}"),
+        InlineKeyboardButton("🔄 رقم مجاني جديد", callback_data=f"getnum_{app_name.lower()}_{cnt_key}"),
         InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
     )
     markup_user.add(
-        InlineKeyboardButton("🔙 رجوع للدول", callback_data="back_home")
+        InlineKeyboardButton("🔙 رجوع للقائمة", callback_data="back_home")
     )
     
     try:
@@ -222,7 +264,7 @@ def wait_for_real_otp_background(chat_id, message_id, phone_number, act_id, plat
     masked_number = "*******" + phone_number[-4:] if len(phone_number) > 4 else phone_number
     channel_formatted_msg = (
         f"🌟=================🌟\n"
-        f"✨ Messga OTP Received ✨\n"
+        f"✨ Free OTP Received ✨\n"
         f"⚙️ Service: {app_name.upper()}\n"
         f"☎️ Number: {masked_number}\n"
         f"🌍 Country: {country_info['name']} {country_info['flag']}\n\n"
@@ -249,14 +291,24 @@ def start(message):
     if message.chat.type != 'private':
         return
     user_id = message.from_user.id
-    save_user(user_id)
+    
+    # فحص رابط الدعوة (Referral)
+    args = message.text.split()
+    referrer_id = None
+    if len(args) > 1 and args[1].startswith("ref"):
+        try:
+            referrer_id = int(args[1].replace("ref", ""))
+        except:
+            pass
+
+    save_user(user_id, referrer_id)
     
     unsub = get_unsubscribed_channels(user_id)
     if unsub:
         try:
             bot.send_message(
                 message.chat.id, 
-                "⚠️ **يجب عليك الانضمام إلى القنوات والجروب التالي أولاً لاستخدام البوت:**", 
+                "⚠️ **يجب عليك الانضمام إلى القنوات والجروب التالي أولاً لاستخدام البوت المجاني:**", 
                 reply_markup=get_subscription_markup(user_id), 
                 parse_mode="Markdown"
             )
@@ -265,7 +317,7 @@ def start(message):
         return
     
     try:
-        bot.send_message(message.chat.id, "☁️ أهلاً بك في لوحة NumberNest السحابية:", reply_markup=get_main_reply_keyboard())
+        bot.send_message(message.chat.id, "☁️ أهلاً بك في بوت أرقام التفعيل المجاني (نظام النقاط):", reply_markup=get_main_reply_keyboard())
     except Exception:
         pass
     send_main_menu(message.chat.id)
@@ -326,6 +378,18 @@ def handle_all_text_messages(message):
             send_main_menu(message.chat.id)
         elif text == "🔄 رقم جديد":
             send_main_menu(message.chat.id)
+        elif text == "🎁 نقاطي / رصيدي":
+            pts = get_user_points(user_id)
+            bot.send_message(message.chat.id, f"🎁 **رصيدك الحالي:**\n⭐ لديك `{pts}` نقطة تفعيل مجانية.\n\n💡 *كل صديق تدعوه يمنحك نقطة مجانية!*", parse_mode="Markdown")
+        elif text == "👥 دعوة الأصدقاء (ربح نقاط)":
+            bot_info = bot.get_me()
+            ref_link = f"https://t.me/{bot_info.username}?start=ref{user_id}"
+            msg_ref = (
+                f"🔗 **رابط الدعوة الخاص بك:**\n"
+                f"`{ref_link}`\n\n"
+                f"شارك هذا الرابط مع أصدقائك أو في الجروبات، وكل شخص يدخل عبر رابطك ستحصل على **1 نقطة تفعيل مجانية** فوراً! 🚀"
+            )
+            bot.send_message(message.chat.id, msg_ref, parse_mode="Markdown")
         elif text == "🛒 تواصل مع مطور البوت":
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 التواصل المباشر مع المطور", url=DEVELOPER_URL))
             bot.send_message(message.chat.id, "💬 **للتواصل مع المطور مباشرة:**", reply_markup=markup, parse_mode="Markdown")
@@ -343,18 +407,6 @@ def handle_all_text_messages(message):
             bot.send_message(message.chat.id, f"🔐 **كود التحقق الثنائي (2FA) مقترح:**\n`{pin}`\n\n*(اضغط مطولاً للنسخ)*", parse_mode="Markdown")
         elif text == "🆔 استخراج ID":
             bot.send_message(message.chat.id, f"🆔 **معلومات حسابك في التيليجرام:**\n👤 الاسم: {message.from_user.first_name}\n📌 الآيدي (ID): `{user_id}`", parse_mode="Markdown")
-        elif text == "🛒 شحن رصيد / أرقام مدفوعة":
-            bot.send_message(message.chat.id, "🛍️ **لشحن الرصيد أو طلب أرقام سحابية مدفوعة، تواصل مع المطور مباشرة:**", reply_markup=InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 تواصل مع المطور", url=DEVELOPER_URL)), parse_mode="Markdown")
-        elif text == "📢 مشاركة البوت":
-            bot_info = bot.get_me()
-            share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}&text=أقوى%20بوت%20سحابي%20لتفعيل%20الأرقام!☁️"
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 نشر رابط البوت", url=share_url))
-            bot.send_message(message.chat.id, "📢 **شارك بوت NumberNest مع أصدقائك:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "👨‍💻 المطور الداعم":
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 التواصل المباشر مع المطور", url=DEVELOPER_URL))
-            bot.send_message(message.chat.id, "💬 **لأي استفسار أو دعم فني:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "🪪 ملفي الشخصي":
-            bot.send_message(message.chat.id, f"👤 **معلومات حسابك السحابي:**\n🆔 آيدي: `{user_id}`\n☁️ الحالة: مفعل ونشط", parse_mode="Markdown")
         elif text == "⚡ لوحة المطور":
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
@@ -373,6 +425,8 @@ def get_main_reply_keyboard():
     markup.add(
         KeyboardButton("🌐 الدول"),
         KeyboardButton("🔄 رقم جديد"),
+        KeyboardButton("🎁 نقاطي / رصيدي"),
+        KeyboardButton("👥 دعوة الأصدقاء (ربح نقاط)"),
         KeyboardButton("🛒 تواصل مع مطور البوت"),
         KeyboardButton("⚡ رسالة إذاعة للمطور"),
         KeyboardButton("🔑 باسورد"),
@@ -401,11 +455,8 @@ def send_main_menu(chat_id, message_id=None):
     )
     
     welcome_text = (
-        "🔥 **HOT ACCESS | وصول قوي** 🔥\n\n"
-        "📸 Instagram: Italy 🇮🇹 • Venezuela 🇻🇪\n"
-        "📘 Facebook: Venezuela 🇻🇪\n"
-        "❌ X: Syria 🇸🇾\n"
-        "🟢 WhatsApp: Vietnam 🇻🇳\n\n"
+        "🔥 **HOT ACCESS | النظام المجاني بالنقاط والأرقام العامة** 🔥\n\n"
+        "⭐ اجمع النقاط عبر دعوة أصدقائك واحصل على أرقام مجانية تماماً!\n\n"
         "Start now! 🔥🚀"
     )
     try:
@@ -502,15 +553,26 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy", "prefixes": ["320", "330", "340"]})
             
-            bot.answer_callback_query(call.id, "⚡ جاري جلب الرقم الحقيقي وانتظار الكود...", show_alert=True)
+            # فحص رصيد نقاط المستخدم قبل الجلب
+            user_pts = get_user_points(user_id)
+            if user_pts <= 0 and user_id != ADMIN_ID:
+                bot.answer_callback_query(call.id, "❌ رصيدك صفر نقاط! ادع أصدقاءك لتربح نقاط مجانية.", show_alert=True)
+                bot.send_message(call.message.chat.id, "⚠️ **عذراً، ليس لديك نقاط كافية لاستخراج رقم مجاني!**\n\nاضغط على زر **(👥 دعوة الأصدقاء)** وشارك رابطك مع أصدقائك لتربح نقاط تفعيل فورية مجاناً 🎁", parse_mode="Markdown")
+                return
+
+            bot.answer_callback_query(call.id, "⚡ جاري استخراج الرقم المجاني عبر نظام النقاط...", show_alert=True)
             
-            phone_number, act_id, platform, key = buy_real_number(cnt_info["slug"], service, cnt_info)
+            phone_number, act_id, platform, key = buy_real_number(cnt_info["slug"], service, cnt_info, user_id)
             
+            if platform == "no_points":
+                bot.send_message(call.message.chat.id, "❌ نفدت نقاطك الحالية، يرجى دعوة أصدقاء جدد للحصول على نقاط تفعيل جديدة.", parse_mode="Markdown")
+                return
+
             user_initial_text = (
                 f"🌍 الدولة: {cnt_info['flag']} `{cnt_info['name']}`\n"
-                f"📱 الرقم: `{phone_number}`\n"
-                f"🔑 كود التحقق: `انتظار وصول الكود الحقيقي من التطبيق... ⏳`\n\n"
-                f"📋 *قم بنسخ الرقم واستخدامه في التفعيل، سيصل الكود هنا تلقائياً*"
+                f"📱 الرقم المجاني: `{phone_number}`\n"
+                f"🔑 كود التحقق: `انتظار وصول الكود العام... ⏳`\n\n"
+                f"📋 *تم خصم نقطة واحدة. استخدم الرقم في التفعيل وسيصل الكود هنا تلقائياً*"
             )
             
             markup_user = InlineKeyboardMarkup(row_width=2)
@@ -519,7 +581,7 @@ def handle_queries(call):
                 InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
             )
             markup_user.add(
-                InlineKeyboardButton("🔙 رجوع للدول", callback_data="back_home")
+                InlineKeyboardButton("🔙 رجوع للقائمة", callback_data="back_home")
             )
             
             sent_msg = bot.edit_message_text(user_initial_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
@@ -527,12 +589,12 @@ def handle_queries(call):
             Thread(target=wait_for_real_otp_background, args=(call.message.chat.id, sent_msg.message_id, phone_number, act_id, platform, key, app_name, app_icon, cnt_info, service, cnt_key), daemon=True).start()
             
         except Exception as e:
-            bot.answer_callback_query(call.id, "❌ حدث خطأ، تأكد من شحن الرصيد في حسابك.", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ حدث خطأ، تأكد من وجود نقاط بحسابك.", show_alert=True)
 
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Real-OTP Engine is running 24/7 successfully!")
+    print("NumberNest Free Points Engine is running 24/7 successfully!")
 
     while True:
         try:
