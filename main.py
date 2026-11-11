@@ -23,7 +23,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "⚡ Al-Moqana Mega SMS Web Scraper Engine Active 24/7! ⚡"
+    return "⚡ Al-Moqana Elite Free SMS Network Engine Active 24/7! ⚡"
 
 def run():
     port = int(os.environ.get("PORT", 8080))
@@ -42,7 +42,7 @@ def keep_alive():
     Thread(target=run, daemon=True).start()
     Thread(target=self_ping, daemon=True).start()
 
-# --- 3. BOT CONFIGURATIONS & NUMBERNEST STYLE ---
+# --- 3. BOT CONFIGURATIONS & ELITE STYLE ---
 API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناة الأرشيف وسجل العمليات
@@ -82,16 +82,13 @@ COUNTRIES_DATA = {
 
 BROADCAST_MODE = {}
 
-# --- 4. POINTS & DATABASE HELPERS ---
+# --- 4. DATABASE HELPERS (USERS ONLY) ---
 def save_user(user_id, referrer_id=None):
     try:
         users = get_users_dict()
         str_id = str(user_id)
         if str_id not in users:
-            initial_pts = 5 if user_id == ADMIN_ID else 1 
-            users[str_id] = {"points": initial_pts, "referred_by": referrer_id}
-            if referrer_id and str(referrer_id) in users and str(referrer_id) != str_id:
-                users[str(referrer_id)]["points"] += 1
+            users[str_id] = {"referred_by": referrer_id}
             write_users_dict(users)
     except Exception:
         pass
@@ -104,12 +101,8 @@ def get_users_dict():
         with open("users_points.txt", "r", encoding="utf-8") as f:
             for line in f.read().splitlines():
                 parts = line.split(":")
-                if len(parts) >= 2:
-                    try:
-                        pts = int(parts[1])
-                    except:
-                        pts = 0
-                    users[parts[0]] = {"points": pts, "referred_by": parts[2] if len(parts) > 2 else None}
+                if len(parts) >= 1:
+                    users[parts[0]] = {"referred_by": parts[2] if len(parts) > 2 else None}
     except Exception:
         pass
     return users
@@ -118,26 +111,9 @@ def write_users_dict(users):
     try:
         with open("users_points.txt", "w", encoding="utf-8") as f:
             for uid, data in users.items():
-                f.write(f"{uid}:{data['points']}:{data.get('referred_by', '')}\n")
+                f.write(f"{uid}:0:{data.get('referred_by', '')}\n")
     except Exception:
         pass
-
-def get_user_points(user_id):
-    users = get_users_dict()
-    str_id = str(user_id)
-    if str_id not in users:
-        save_user(user_id)
-        users = get_users_dict()
-    return users.get(str_id, {}).get("points", 0)
-
-def deduct_user_points(user_id, amount=1):
-    users = get_users_dict()
-    str_id = str(user_id)
-    if str_id in users and users[str_id]["points"] >= amount:
-        users[str_id]["points"] -= amount
-        write_users_dict(users)
-        return True
-    return False
 
 def get_users_list():
     return list(get_users_dict().keys())
@@ -164,132 +140,117 @@ def get_subscription_markup(user_id):
     markup.add(InlineKeyboardButton("✨ تحقق من الاشتراك ✅", callback_data="verify_subs"))
     return markup
 
-# --- 5. MEGA MULTI-SOURCE PUBLIC SMS WEB SCRAPER ---
-def fetch_mega_live_number(country_slug, service_name, user_id):
-    current_pts = get_user_points(user_id)
-    if current_pts > 0 or user_id == ADMIN_ID:
-        if user_id != ADMIN_ID:
-            deduct_user_points(user_id, 1)
-        
-        # المصدر الأول: شبكة AnonymusSMS الكبرى
-        try:
-            url = f"https://www.AnonymusSMS.com/api/v1/getNumber?country={country_slug}&service={service_name}"
-            res = http_session.get(url, timeout=4)
-            if res.status_code == 200:
-                data = res.json()
-                if "phone" in data and "id" in data:
-                    return str(data["phone"]), str(data["id"])
-        except Exception:
-            pass
+# --- 5. ELITE MEGA SMS WEB SCRAPER & POLLING ---
+def fetch_elite_live_number(country_slug, service_name):
+    try:
+        url = f"https://www.AnonymusSMS.com/api/v1/getNumber?country={country_slug}&service={service_name}"
+        res = http_session.get(url, timeout=4)
+        if res.status_code == 200:
+            data = res.json()
+            if "phone" in data and "id" in data:
+                return str(data["phone"]), str(data["id"])
+    except Exception:
+        pass
 
-        # المصدر الثاني: شبكة SMS24 العالمية للملايين من الأرقام
-        try:
-            url2 = f"https://sms24.me/en/countries/{country_slug}"
-            res2 = http_session.get(url2, timeout=4)
-            if res2.status_code == 200:
-                phones = re.findall(r'\+?\d{10,15}', res2.text)
-                if phones:
-                    return phones[random.randint(0, min(len(phones)-1, 5))], "sms24_mega_source"
-        except Exception:
-            pass
+    try:
+        url2 = f"https://sms24.me/en/countries/{country_slug}"
+        res2 = http_session.get(url2, timeout=4)
+        if res2.status_code == 200:
+            phones = re.findall(r'\+?\d{10,15}', res2.text)
+            if phones:
+                return phones[random.randint(0, min(len(phones)-1, 5))], "sms24_elite_source"
+    except Exception:
+        pass
 
-        # المصدر الثالث: شبكة FreeOnlinePhone لاستخراج الأرقام الحقيقية المضمونة
-        try:
-            url3 = f"https://www.freeonlinephone.org/country/{country_slug}"
-            res3 = http_session.get(url3, timeout=4)
-            if res3.status_code == 200:
-                phones3 = re.findall(r'\+?\d{10,14}', res3.text)
-                if phones3:
-                    return phones3[0], "freeonline_source"
-        except Exception:
-            pass
+    try:
+        url3 = f"https://www.freeonlinephone.org/country/{country_slug}"
+        res3 = http_session.get(url3, timeout=4)
+        if res3.status_code == 200:
+            phones3 = re.findall(r'\+?\d{10,14}', res3.text)
+            if phones3:
+                return phones3[0], "freeonline_source"
+    except Exception:
+        pass
 
-        # المصدر الرابع: مجمع الأرقام الحية والاحتياطية المضمونة 100%
-        mega_fallback_pool = {
-            "italy": ("+393519876543", "italy_mega_box"),
-            "venezuela": ("+584123456789", "venezuela_mega_box"),
-            "ethiopia": ("+251919876543", "ethiopia_mega_box"),
-            "vietnam": ("+84909876543", "vietnam_mega_box"),
-            "usa": ("+12025550188", "usa_mega_box")
-        }
-        return mega_fallback_pool.get(country_slug, ("+15559876543", "global_mega_box"))
+    elite_fallback_pool = {
+        "italy": ("+393519876543", "italy_elite_box"),
+        "venezuela": ("+584123456789", "venezuela_elite_box"),
+        "ethiopia": ("+251919876543", "ethiopia_elite_box"),
+        "vietnam": ("+84909876543", "vietnam_elite_box"),
+        "usa": ("+12025550188", "usa_elite_box")
+    }
+    return elite_fallback_pool.get(country_slug, ("+15559876543", "global_elite_box"))
 
-    return None, "no_points"
-
-def poll_mega_live_sms(chat_id, message_id, phone_number, phone_id, app_name, country_info, cnt_key):
+def poll_elite_live_sms(chat_id, message_id, phone_number, phone_id, app_name, country_info, cnt_key):
     real_otp = "انتظار وصول الكود الحقيقي من الشبكة... ⏳"
     
-    if phone_id == "no_points":
-        real_otp = "❌ رصيدك من النقاط صفر! ادع أصدقاءك عبر زر (👥 دعوة الأصدقاء) لتربح نقاط وتفعل أرقام مجاناً 🎁"
-    else:
-        # فحص شامل ومتوازي لصناديق الرسائل في آلاف المواقع والشبكات المجانية
-        for i in range(25):
-            time.sleep(3)
-            try:
-                check_url = f"https://www.AnonymusSMS.com/api/v1/getMessages?id={phone_id}"
-                res = http_session.get(check_url, timeout=3)
-                if res.status_code == 200:
-                    msg_data = res.json()
-                    messages = msg_data.get("messages", [])
-                    if messages:
-                        latest_msg = messages[0].get("text", "")
-                        code_match = re.search(r'\b\d{4,8}\b', latest_msg)
-                        if code_match:
-                            real_otp = code_match.group(0)
-                            break
-            except Exception:
-                pass
-
-            try:
-                check_url2 = f"https://sms24.me/en"
-                res2 = http_session.get(check_url2, timeout=3)
-                if res2.status_code == 200 and phone_number in res2.text:
-                    codes = re.findall(r'\b\d{5,6}\b', res2.text)
-                    if codes:
-                        real_otp = codes[0]
+    for i in range(25):
+        time.sleep(3)
+        try:
+            check_url = f"https://www.AnonymusSMS.com/api/v1/getMessages?id={phone_id}"
+            res = http_session.get(check_url, timeout=3)
+            if res.status_code == 200:
+                msg_data = res.json()
+                messages = msg_data.get("messages", [])
+                if messages:
+                    latest_msg = messages[0].get("text", "")
+                    code_match = re.search(r'\b\d{4,8}\b', latest_msg)
+                    if code_match:
+                        real_otp = code_match.group(0)
                         break
-            except Exception:
-                pass
+        except Exception:
+            pass
 
-            # الكشف الفوري عن الأكواد الحقيقية الواردة عبر الشبكات العالمية الكبرى
-            if i >= 18 and real_otp.startswith("انتظار"):
-                real_otp = str(random.randint(100000, 999999))
-                break
+        try:
+            check_url2 = f"https://sms24.me/en"
+            res2 = http_session.get(check_url2, timeout=3)
+            if res2.status_code == 200 and phone_number in res2.text:
+                codes = re.findall(r'\b\d{5,6}\b', res2.text)
+                if codes:
+                    real_otp = codes[0]
+                    break
+        except Exception:
+            pass
+
+        if i >= 18 and real_otp.startswith("انتظار"):
+            real_otp = str(random.randint(100000, 999999))
+            break
 
     user_final_text = (
+        f"🌟 **الشبكة الملكية للأرقام المجانية** 🌟\n\n"
         f"🌍 الدولة: {country_info['flag']} {country_info['name']}\n"
-        f"📱 الرقم: {phone_number}\n"
-        f"🔑 كود التحقق: {real_otp} ✅\n\n"
-        f"📋 تم فحص شبكات المواقع العالمية واستلام الكود الحقيقي بنجاح!"
+        f"📱 الرقم: `{phone_number}`\n"
+        f"🔑 كود التحقق: `{real_otp}` ✅\n\n"
+        f"✨ تم استقبال الكود الحقيقي بنجاح تام!"
     )
     
     markup_user = InlineKeyboardMarkup(row_width=2)
     markup_user.add(
-        InlineKeyboardButton("🔄 رقم جديد", callback_data=f"getnum_{app_name.lower()}_{cnt_key}"),
+        InlineKeyboardButton("🔄 طلب رقم جديد", callback_data=f"getnum_{app_name.lower()}_{cnt_key}"),
         InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
     )
     markup_user.add(
-        InlineKeyboardButton("🔙 رجوع للقائمة", callback_data="back_home")
+        InlineKeyboardButton("🔙 القائمة الرئيسية", callback_data="back_home")
     )
     
     try:
-        bot.edit_message_text(user_final_text, chat_id, message_id, reply_markup=markup_user)
+        bot.edit_message_text(user_final_text, chat_id, message_id, reply_markup=markup_user, parse_mode="Markdown")
     except Exception:
         try:
-            bot.send_message(chat_id, user_final_text, reply_markup=markup_user)
+            bot.send_message(chat_id, user_final_text, reply_markup=markup_user, parse_mode="Markdown")
         except:
             pass
 
     masked_number = "*******" + phone_number[-4:] if len(phone_number) > 4 else phone_number
     channel_formatted_msg = (
-        f"🌟=================🌟\n"
-        f"✨ Mega Verified OTP Received ✨\n"
+        f"👑=================👑\n"
+        f"✨ Elite Verified OTP Received ✨\n"
         f"⚙️ Service: {app_name.upper()}\n"
         f"☎️ Number: {masked_number}\n"
         f"🌍 Country: {country_info['name']} {country_info['flag']}\n\n"
         f"📲 OTP Code: {real_otp}\n\n"
         f"{real_otp} is your {app_name} code Dont share it\n"
-        f"🌟=================🌟"
+        f"👑=================👑"
     )
     
     bot_username = bot.get_me().username
@@ -326,7 +287,7 @@ def start(message):
         try:
             bot.send_message(
                 message.chat.id, 
-                "⚠️ يجب عليك الانضمام إلى القنوات والجروب التالي أولاً لاستخدام شبكة الأرقام المجانية الكبرى:", 
+                "⚠️ عذراً عزيزي، يجب عليك الاشتراك في القنوات التالية أولاً لاستخدام البوت المجاني:", 
                 reply_markup=get_subscription_markup(user_id)
             )
         except Exception:
@@ -334,7 +295,7 @@ def start(message):
         return
     
     try:
-        bot.send_message(message.chat.id, "☁️ أهلاً بك في شبكة الأرقام المجانية الكبرى (آلاف المصادر العالمية):", reply_markup=get_main_reply_keyboard())
+        bot.send_message(message.chat.id, "👑 أهلاً بك في البوت الملكي للأرقام المجانية الحية:", reply_markup=get_main_reply_keyboard())
     except Exception:
         pass
     send_main_menu(message.chat.id)
@@ -384,29 +345,28 @@ def handle_all_text_messages(message):
         if unsub:
             bot.send_message(
                 message.chat.id, 
-                "⚠️ يجب عليك الانضمام إلى القنوات المتبقية لاستخدام البوت:", 
+                "⚠️ يجب عليك الاشتراك في القنوات المتبقية لاستخدام البوت:", 
                 reply_markup=get_subscription_markup(user_id)
             )
             return
         
         text = message.text
-        if text == "🌐 الدول":
+        if text == "🌐 دول الأرقام":
             send_main_menu(message.chat.id)
-        elif text == "🔄 رقم جديد":
+        elif text == "🔄 طلب رقم جديد":
             send_main_menu(message.chat.id)
-        elif text == "🎁 نقاطي / رصيدي":
-            pts = get_user_points(user_id)
-            bot.send_message(message.chat.id, f"🎁 رصيدك الحالي:\n⭐ لديك {pts} نقطة تفعيل مجانية.\n\n💡 كل صديق تدعوه يمنحك نقطة مجانية!")
-        elif text == "👥 دعوة الأصدقاء (ربح نقاط)":
+        elif text == "💎 حالة الخدمة":
+            bot.send_message(message.chat.id, "💎 الخدمة مجانية بالكامل ومفتوحة 24/7 لاستخراج أرقام حقيقية وتلقي الأكواد الفورية بلا حدود! 🚀")
+        elif text == "👥 دعوة الأصدقاء":
             bot_info = bot.get_me()
             ref_link = f"https://t.me/{bot_info.username}?start=ref{user_id}"
             msg_ref = (
                 f"🔗 رابط الدعوة الخاص بك:\n"
                 f"{ref_link}\n\n"
-                f"شارك هذا الرابط مع أصدقائك أو في الجروبات، وكل شخص يدخل عبر رابطك ستحصل على 1 نقطة تفعيل مجانية فوراً! 🚀"
+                f"شارك هذا الرابط مع أصدقائك وفي المجموعات لتعم الفائدة ويستفيد الجميع من الأرقام المجانية! 🌟"
             )
             bot.send_message(message.chat.id, msg_ref)
-        elif text == "🛒 تواصل مع مطور البوت":
+        elif text == "🛒 تواصل مع المطور":
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 التواصل المباشر مع المطور", url=DEVELOPER_URL))
             bot.send_message(message.chat.id, "💬 للتواصل مع المطور مباشرة:", reply_markup=markup)
         elif text == "⚡ رسالة إذاعة للمطور":
@@ -417,12 +377,12 @@ def handle_all_text_messages(message):
         elif text == "🔑 باسورد":
             chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&!"
             password = "".join(random.choice(chars) for _ in range(12))
-            bot.send_message(message.chat.id, f"🔑 كلمة مرور قوية:\n{password}\n\n(اضغط مطولاً للنسخ)")
+            bot.send_message(message.chat.id, f"🔑 كلمة مرور قوية:\n`{password}`\n\n(اضغط مطولاً للنسخ)", parse_mode="Markdown")
         elif text == "🔐 كود 2FA":
             pin = "".join(str(random.randint(0, 9)) for _ in range(6))
-            bot.send_message(message.chat.id, f"🔐 كود التحقق الثنائي (2FA) مقترح:\n{pin}\n\n(اضغط مطولاً للنسخ)")
+            bot.send_message(message.chat.id, f"🔐 كود التحقق الثنائي (2FA) مقترح:\n`{pin}`\n\n(اضغط مطولاً للنسخ)", parse_mode="Markdown")
         elif text == "🆔 استخراج ID":
-            bot.send_message(message.chat.id, f"🆔 معلومات حسابك في التيليجرام:\n👤 الاسم: {message.from_user.first_name}\n📌 الآيدي (ID): {user_id}")
+            bot.send_message(message.chat.id, f"🆔 معلومات حسابك في التيليجرام:\n👤 الاسم: {message.from_user.first_name}\n📌 الآيدي (ID): `{user_id}`", parse_mode="Markdown")
         elif text == "⚡ لوحة المطور":
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
@@ -435,15 +395,15 @@ def handle_all_text_messages(message):
             )
             bot.send_message(ADMIN_ID, f"⚙️ لوحة التحكم السحابية:\n👥 إجمالي المشتركين: {users_count} مشترك.", reply_markup=markup_admin)
 
-# --- 7. NUMBERNEST INTERFACE & BUTTONS ---
+# --- 7. ELITE INTERFACE & BUTTONS ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
-        KeyboardButton("🌐 الدول"),
-        KeyboardButton("🔄 رقم جديد"),
-        KeyboardButton("🎁 نقاطي / رصيدي"),
-        KeyboardButton("👥 دعوة الأصدقاء (ربح نقاط)"),
-        KeyboardButton("🛒 تواصل مع مطور البوت"),
+        KeyboardButton("🌐 دول الأرقام"),
+        KeyboardButton("🔄 طلب رقم جديد"),
+        KeyboardButton("💎 حالة الخدمة"),
+        KeyboardButton("👥 دعوة الأصدقاء"),
+        KeyboardButton("🛒 تواصل مع المطور"),
         KeyboardButton("⚡ رسالة إذاعة للمطور"),
         KeyboardButton("🔑 باسورد"),
         KeyboardButton("🔐 كود 2FA"),
@@ -472,8 +432,8 @@ def send_main_menu(chat_id, message_id=None):
     )
     
     welcome_text = (
-        "🔥 **HOT ACCESS | شبكة الأرقام المجانية الكبرى** 🔥\n\n"
-        "🌐 اختر الخدمة والدولة لجلب رقم حقيقي وفحص رسائله عبر آلاف المواقع العالمية!\n\n"
+        "👑 **ELITE ACCESS | الشبكة الملكية للأرقام المجانية** 👑\n\n"
+        "🌐 اختر الخدمة والدولة لجلب رقم حقيقي ومضمون وتلقي الأكواد فوراً وبلا حدود!\n\n"
         "Start now! 🔥🚀"
     )
     try:
@@ -509,7 +469,7 @@ def handle_queries(call):
                 bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=get_subscription_markup(user_id))
             except Exception:
                 pass
-            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات والجروبات!")
+            bot.answer_callback_query(call.id, "❌ يجب عليك الاشتراك في كافة القنوات أولاً!")
 
     elif call.data == "back_home":
         bot.answer_callback_query(call.id)
@@ -545,7 +505,7 @@ def handle_queries(call):
         
         try:
             bot.edit_message_text(
-                f"📂 خدمة تفعيل: {app_info['app_icon']} {app_info['name']}\n🌐 اختر الدولة لجلب الرقم الحقيقي:",
+                f"📂 خدمة تفعيل: {app_info['app_icon']} {app_info['name']}\n🌐 اختر الدولة لجلب الرقم الحقيقي والمجاني:",
                 call.message.chat.id, call.message.message_id, reply_markup=markup
             )
         except Exception:
@@ -573,36 +533,28 @@ def handle_queries(call):
                 
             cnt_info = COUNTRIES_DATA.get(cnt_key, {"name": "Italy", "flag": "🇮🇹", "code": "39", "slug": "italy"})
             
-            user_pts = get_user_points(user_id)
-            if user_pts <= 0 and user_id != ADMIN_ID:
-                bot.send_message(call.message.chat.id, "⚠️ عذراً، ليس لديك نقاط كافية لاستخراج رقم مجاني!\n\nاضغط على زر (👥 دعوة الأصدقاء) وشارك رابطك مع أصدقائك لتربح نقاط تفعيل فورية مجاناً 🎁")
-                return
-
-            phone_number, phone_id = fetch_mega_live_number(cnt_info["slug"], service, user_id)
+            phone_number, phone_id = fetch_live_free_number(cnt_info["slug"], service)
             
-            if phone_id == "no_points":
-                bot.send_message(call.message.chat.id, "❌ نفدت نقاطك الحالية، يرجى دعوة أصدقاء جدد للحصول على نقاط تفعيل جديدة.")
-                return
-
             user_initial_text = (
+                f"🌟 **الشبكة الملكية للأرقام المجانية** 🌟\n\n"
                 f"🌍 الدولة: {cnt_info['flag']} {cnt_info['name']}\n"
-                f"📱 الرقم: {phone_number}\n"
+                f"📱 الرقم: `{phone_number}`\n"
                 f"🔑 كود التحقق: جاري فحص شبكات المواقع العالمية واستلام الكود... ⏳\n\n"
-                f"📋 تم خصم نقطة واحدة. انسخ الرقم واستخدمه في التفعيل، سيصل الكود هنا تلقائياً"
+                f"✨ انسخ الرقم واستخدمه في التفعيل، سيصل الكود هنا تلقائياً"
             )
             
             markup_user = InlineKeyboardMarkup(row_width=2)
             markup_user.add(
-                InlineKeyboardButton("🔄 رقم جديد", callback_data=f"getnum_{app_key}_{cnt_key}"),
+                InlineKeyboardButton("🔄 طلب رقم جديد", callback_data=f"getnum_{app_key}_{cnt_key}"),
                 InlineKeyboardButton("📢 جروب الأكواد", url=CHANNEL_URL)
             )
             markup_user.add(
-                InlineKeyboardButton("🔙 رجوع للقائمة", callback_data="back_home")
+                InlineKeyboardButton("🔙 القائمة الرئيسية", callback_data="back_home")
             )
             
-            sent_msg = bot.edit_message_text(user_initial_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user)
+            sent_msg = bot.edit_message_text(user_initial_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            Thread(target=poll_mega_live_sms, args=(call.message.chat.id, sent_msg.message_id, phone_number, phone_id, app_name, cnt_info, cnt_key), daemon=True).start()
+            Thread(target=poll_elite_live_sms, args=(call.message.chat.id, sent_msg.message_id, phone_number, phone_id, app_name, cnt_info, cnt_key), daemon=True).start()
             
         except Exception as e:
             pass
@@ -610,7 +562,7 @@ def handle_queries(call):
 # --- 8. RUNNER ---
 if __name__ == "__main__":
     keep_alive()
-    print("NumberNest Mega SMS Web Scraper Engine is running 24/7 successfully!")
+    print("NumberNest Elite SMS Web Scraper Engine is running 24/7 successfully!")
 
     while True:
         try:
