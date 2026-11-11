@@ -141,7 +141,7 @@ def get_subscription_markup(user_id):
     return markup
 
 # --- 5. ELITE MEGA SMS WEB SCRAPER & POLLING ---
-def fetch_elite_live_number(country_slug, service_name):
+def fetch_live_free_number(country_slug, service_name):
     try:
         url = f"https://www.AnonymusSMS.com/api/v1/getNumber?country={country_slug}&service={service_name}"
         res = http_session.get(url, timeout=4)
