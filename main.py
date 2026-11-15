@@ -42,7 +42,7 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
-API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
+API_TOKEN = '8686242492:AAF4uwLQekk6j2E011eyAvh1UiYdS1tI0-A'
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
 
@@ -54,16 +54,16 @@ API_KEYS = {
     "smshub": "ضع_مفتاح_smshub_هنا"
 }
 
-# تنظيف فوري لأي ويبهوك قديم لضمان سرعة الاستجابة القصوى
+# تنظيف فوري لأي ويبهوك قديم لضمان عدم حدوث تعارض
 try:
-    requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=5)
+    requests.get(f"https://api.telegram.org/bot{API_TOKEN}/deleteWebhook?drop_pending_updates=true", timeout=10)
 except Exception:
     pass
 
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري (المحدثة بدقة حسب معرفاتك الحقيقية)
+# قنوات الاشتراك الإجباري
 SUBSCRIPTION_CHANNELS = [
     {"id": "@v_o_lti", "name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti"},
     {"id": "@jzbznznx", "name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx"},
@@ -391,7 +391,8 @@ def handle_queries(call):
 
     elif call.data.startswith("copy_otp_"):
         otp_val = call.data.replace("copy_otp_", "")
-        bot.answer_callback_query(call.id, f"✅ تم نسخ الكود \"{otp_val}\" إلى الحافظة بنجاح!", show_alert=True)
+        # إظهار رسالة منبثقة سريعة جداً بنسخ الكود
+        bot.answer_callback_query(call.id, f"📋 تم نسخ الكود: {otp_val}", show_alert=False)
 
     elif call.data.startswith("check_"):
         try:
@@ -475,13 +476,14 @@ def handle_queries(call):
             )
             
             bot_username = bot.get_me().username
+            # التعديل هنا: زر الكود في القناة يرتبط بالبوت (callback_data) لنسخ الكود فوراً وبدون الانتقال لحسابك الشخصي
             markup_channel = InlineKeyboardMarkup(row_width=2)
             markup_channel.add(
                 InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
             )
             markup_channel.add(
                 InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
-                InlineKeyboardButton("📢 Channel", url="https://t.me/Awad_Numbers_Bot")
+                InlineKeyboardButton("📢 Channel", url=f"https://t.me/{CHANNEL_LOG_ID.replace('@', '')}")
             )
             
             try:
