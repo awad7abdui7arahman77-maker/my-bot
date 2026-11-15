@@ -46,7 +46,7 @@ API_TOKEN = '8686242492:AAFdseE7gxsUNRkVgVESl22R_qxqd7WHYEU'
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
 
-# شبكات ومواقع الأرقام الوهمية العالمية (نفس التي تستخدمها البوتات الكبرى)
+# شبكات ومواقع الأرقام الوهمية العالمية
 API_KEYS = {
     "5sim": "ضع_مفتاح_5sim_هنا",
     "sms_activate": "ضع_مفتاح_sms_activate_هنا",
@@ -63,7 +63,7 @@ except Exception:
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري
+# قنوات الاشتراك الإجباري (المحدثة بدقة حسب معرفاتك الحقيقية)
 SUBSCRIPTION_CHANNELS = [
     {"id": "@v_o_lti", "name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti"},
     {"id": "@jzbznznx", "name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx"},
@@ -138,7 +138,6 @@ def get_subscription_markup(user_id):
 
 # --- 5. ULTRA-FAST MULTI-API GLOBAL NETWORK ENGINE ---
 def buy_number_from_global_networks(country_slug, service_name):
-    # محاولة سحب الرقم عبر شبكات ومواقع الـ API المدفوعة إذا تفرّت المفاتيح
     for platform_key, api_key_val in [("5sim", API_KEYS["5sim"]), ("sms_activate", API_KEYS["sms_activate"]), ("smshub", API_KEYS["smshub"]), ("grizzly", API_KEYS["grizzly"])]:
         if api_key_val and api_key_val != f"ضع_مفتاح_{platform_key}_هنا":
             try:
@@ -157,7 +156,7 @@ def buy_number_from_global_networks(country_slug, service_name):
             except Exception:
                 continue
 
-    # نظام المحاكاة الذكية السريع جداً (يعمل فوراً وبدون تأخير لضمان استجابة البوت)
+    # نظام المحاكاة الذكية السريع جداً
     prefix_code = COUNTRIES_DATA.get(country_slug, {"code": "1"})["code"]
     phone_number = f"+{prefix_code}9{int(time.time() * 1000) % 90000000 + 10000000}"
     otp_code = f"{int(time.time()) % 900000 + 100000}"
@@ -442,7 +441,6 @@ def handle_queries(call):
             
             bot.answer_callback_query(call.id, "⚡ جاري إحضار الرقم عبر شبكات Multi-API...")
             
-            # جلب الرقم فوراً وبسرعة فائقة جداً
             res_data = buy_number_from_global_networks(cnt_info["slug"], service)
             selected_number = res_data["phone"]
             real_otp = res_data.get("otp", f"{int(time.time()) % 900000 + 100000}")
@@ -464,7 +462,6 @@ def handle_queries(call):
             
             msg = bot.edit_message_text(user_display_text, call.message.chat.id, call.message.message_id, reply_markup=markup_user, parse_mode="Markdown")
             
-            # إرسال رسالة القناة بنفس التنسيق الاحترافي تماماً
             masked_number = selected_number[:6] + "••••••••" + selected_number[-4:] if len(selected_number) > 10 else selected_number
             country_code_abbrev = cnt_info['name'][:2].upper()
             
