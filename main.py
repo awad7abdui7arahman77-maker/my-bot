@@ -231,20 +231,17 @@ def monitor_text_messages(message):
             return
         
         text = message.text
-        if text == "🌐 الدول والأرقام":
+        if text in ["دول الأرقام", "🌐 الدول والأرقام", "طلب رقم جديد"]:
             send_main_menu(message.chat.id)
-        elif text == "🛒 قسم الأرقام المدفوعة":
-            bot.send_message(message.chat.id, "🛍️ **قسم الأرقام المدفوعة الحصرية متاح عبر التواصل مع المطور مباشرة.**", parse_mode="Markdown")
-        elif text == "📢 مشاركة البوت":
-            bot_info = bot.get_me()
-            share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}&text=أفضل%20بوت%20أرقام%20وأكواد!⚡"
-            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 إرسال رابط البوت", url=share_url))
-            bot.send_message(message.chat.id, "📢 **شارك البوت مع أصدقائك:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "👨‍💻 تواصل مع المطور":
+        elif text in ["حالة الخدمة", "💎 حالة الخدمة"]:
+            bot.send_message(message.chat.id, "💎 **حالة الخدمة:** تعمل جميع شبكات Multi-API بكفاءة 100% ⚡", parse_mode="Markdown")
+        elif text in ["تواصل مع المطور", "🛒 تواصل مع المطور"]:
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
             bot.send_message(message.chat.id, "💬 **للتواصل مع المطور:**", reply_markup=markup, parse_mode="Markdown")
-        elif text == "🪪 استخراج ID":
-            bot.send_message(message.chat.id, f"🆔 **آيدي حسابك:** `{user_id}`", parse_mode="Markdown")
+        elif text in ["باسورد", "🔑 باسورد"]:
+            bot.send_message(message.chat.id, "🔑 **قسم الباسوردات والأمان متاح عبر طلب الأرقام المباشرة من القائمة.**", parse_mode="Markdown")
+        elif text in ["كود 2FA", "🔒 كود 2FA"]:
+            bot.send_message(message.chat.id, "🔒 **قسم التحقق بخطوتين (2FA) متاح في القائمة الرئيسية.**", parse_mode="Markdown")
         elif text == "⚡ لوحة المطور":
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
@@ -261,11 +258,12 @@ def monitor_text_messages(message):
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
-        KeyboardButton("🌐 الدول والأرقام"),
-        KeyboardButton("🛒 قسم الأرقام المدفوعة"),
-        KeyboardButton("📢 مشاركة البوت"),
-        KeyboardButton("👨‍💻 تواصل مع المطور"),
-        KeyboardButton("🪪 استخراج ID"),
+        KeyboardButton("دول الأرقام"),
+        KeyboardButton("حالة الخدمة"),
+        KeyboardButton("تواصل مع المطور"),
+        KeyboardButton("باسورد"),
+        KeyboardButton("كود 2FA"),
+        KeyboardButton("طلب رقم جديد"),
         KeyboardButton("⚡ لوحة المطور")
     )
     return markup
@@ -391,7 +389,6 @@ def handle_queries(call):
 
     elif call.data.startswith("copy_otp_"):
         otp_val = call.data.replace("copy_otp_", "")
-        # إظهار رسالة منبثقة سريعة جداً بنسخ الكود
         bot.answer_callback_query(call.id, f"📋 تم نسخ الكود: {otp_val}", show_alert=False)
 
     elif call.data.startswith("check_"):
@@ -476,7 +473,7 @@ def handle_queries(call):
             )
             
             bot_username = bot.get_me().username
-            # التعديل هنا: زر الكود في القناة يرتبط بالبوت (callback_data) لنسخ الكود فوراً وبدون الانتقال لحسابك الشخصي
+            # زر الكود في القناة يقوم بالنسخ الفوري داخل البوت بدون تحويل لحسابك
             markup_channel = InlineKeyboardMarkup(row_width=2)
             markup_channel.add(
                 InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
