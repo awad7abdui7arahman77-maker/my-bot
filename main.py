@@ -44,7 +44,7 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAGkaEMiaBRLTgc1RR1lJibTsIpQaEn4mC4'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
+CHANNEL_LOG_ID = "@hsbssvs776"  # معرف قناتك العام الصحيح للأكواد
 
 # شبكات ومواقع الأرقام الوهمية العالمية
 API_KEYS = {
@@ -63,12 +63,13 @@ except Exception:
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري
+# قنوات الاشتراك الإجباري المحدثة بالكامل
 SUBSCRIPTION_CHANNELS = [
+    {"id": "@breakthroughawad210", "name": "📢 قناة تعليم الاختراق وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210"},
+    {"id": "@hvvcvevw", "name": "📢 قناة المقنع للأرقام وجروب الدعم", "url": "https://t.me/hvvcvevw"},
     {"id": "@v_o_lti", "name": "📢 قناة جديدة", "url": "https://t.me/v_o_lti"},
     {"id": "@jzbznznx", "name": "📢 قناة عبارات بشكل عام", "url": "https://t.me/jzbznznx"},
-    {"name": "📢 تعليم اختراق الجوالات وتوقيف الواتساب", "id": "@breakthroughawad210", "url": "https://t.me/breakthroughawad210"},
-    {"id": "@sn6hdbdn19dndw", "name": "📢 قناة الدعم الاحتياطية", "url": "https://t.me/sn6hdbdn19dndw"}
+    {"id": "@sn6hdbdn19dndw", "name": "📢 قناة الاكواد الاحتياطي", "url": "https://t.me/sn6hdbdn19dndw"}
 ]
 
 APPS_DATA = {
@@ -224,7 +225,7 @@ def monitor_text_messages(message):
         if unsub:
             bot.send_message(
                 message.chat.id, 
-                "⚠️ **يجب عليك الانضمام إلى القنوات المتبقية لاستخدام البوت:**", 
+                "⚠️ **عذراً، يجب عليك الانضمام إلى جميع القنوات التالية أولاً لاستخدام البوت وطلب الأرقام:**", 
                 reply_markup=get_subscription_markup(user_id), 
                 parse_mode="Markdown"
             )
@@ -232,7 +233,15 @@ def monitor_text_messages(message):
         
         text = message.text.strip() if message.text else ""
         
-        # معالجة ذكية دقيقة تطابق أي شكل للأزرار (سواء مع إيموجي أو بدون)
+        if text.startswith("/start copy_"):
+            otp_to_copy = text.replace("/start copy_", "")
+            bot.send_message(
+                message.chat.id,
+                f"📋 **تم استلام الكود بنجاح وإليك هو للنسخ السريع:**\n\n`{otp_to_copy}`",
+                parse_mode="Markdown"
+            )
+            return
+
         if any(k in text for k in ["دول الأرقام", "الدول والأرقام"]):
             send_main_menu(message.chat.id)
         elif any(k in text for k in ["طلب رقم جديد", "رقم جديد"]):
@@ -324,12 +333,24 @@ def start(message):
     user_id = message.from_user.id
     save_user(user_id)
     
+    text_msg = message.text if message.text else ""
+    if "copy_" in text_msg:
+        try:
+            otp_val = text_msg.split("copy_")[1]
+            bot.send_message(
+                message.chat.id, 
+                f"📋 **تم جلب الكود بنجاح لتسهيل النسخ:**\n\n`{otp_val}`\n\n*(اضغط على الكود بالأسفل مطولاً أو انقر عليه للنسخ السريع)*", 
+                parse_mode="Markdown"
+            )
+        except Exception:
+            pass
+    
     unsub = get_unsubscribed_channels(user_id)
     if unsub:
         try:
             bot.send_message(
                 message.chat.id, 
-                "⚠️ **يجب عليك الانضمام إلى القنوات التالية أولاً لاستخدام البوت:**", 
+                "⚠️ **عذراً، يجب عليك الانضمام إلى جميع القنوات التالية أولاً لاستخدام البوت وطلب الأرقام:**", 
                 reply_markup=get_subscription_markup(user_id), 
                 parse_mode="Markdown"
             )
@@ -347,6 +368,21 @@ def start(message):
 def handle_queries(call):
     user_id = call.from_user.id
     
+    # فحص الاشتراك الإجباري قبل تنفيذ أي زر
+    unsub = get_unsubscribed_channels(user_id)
+    if unsub and call.data != "verify_subs":
+        bot.answer_callback_query(call.id, "❌ يجب عليك الانضمام إلى كافة القنوات أولاً!", show_alert=True)
+        try:
+            bot.send_message(
+                call.message.chat.id, 
+                "⚠️ **عذراً، يجب عليك الانضمام إلى جميع القنوات التالية أولاً لاستخدام البوت:**", 
+                reply_markup=get_subscription_markup(user_id), 
+                parse_mode="Markdown"
+            )
+        except Exception:
+            pass
+        return
+
     if call.data == "verify_subs":
         unsub = get_unsubscribed_channels(user_id)
         if not unsub:
@@ -365,7 +401,7 @@ def handle_queries(call):
                 bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=get_subscription_markup(user_id))
             except Exception:
                 pass
-            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات المتبقية!", show_alert=True)
+            bot.answer_callback_query(call.id, "❌ لم تقم بالاشتراك في كافة القنوات المطلوبة بعد!", show_alert=True)
 
     elif call.data == "back_home":
         send_main_menu(call.message.chat.id, call.message.message_id)
@@ -492,7 +528,7 @@ def handle_queries(call):
             bot_username = bot.get_me().username
             markup_channel = InlineKeyboardMarkup(row_width=2)
             markup_channel.add(
-                InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
+                InlineKeyboardButton(f"🔒 📋 {real_otp}", url=f"https://t.me/{bot_username}?start=copy_{real_otp}")
             )
             markup_channel.add(
                 InlineKeyboardButton("🤖 Bot Link", url=f"https://t.me/{bot_username}"),
@@ -501,8 +537,8 @@ def handle_queries(call):
             
             try:
                 bot.send_message(CHANNEL_LOG_ID, channel_formatted_msg, parse_mode="Markdown", reply_markup=markup_channel)
-            except Exception:
-                pass
+            except Exception as channel_err:
+                print(f"⚠️ تحذير: لم يتم النشر في القناة. الخطأ: {channel_err}")
                 
         except Exception as e:
             bot.answer_callback_query(call.id, "❌ خطأ أثناء جلب الرقم، حاول مجدداً.", show_alert=True)
