@@ -42,7 +42,7 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
-API_TOKEN = '8686242492:AAF4uwLQekk6j2E011eyAvh1UiYdS1tI0-A'
+API_TOKEN = '8686242492:AAGkaEMiaBRLTgc1RR1lJibTsIpQaEn4mC4'
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@Awad_Numbers_Bot"  # قناتك المخصصة للأرقام والأكواد
 
@@ -473,7 +473,6 @@ def handle_queries(call):
             )
             
             bot_username = bot.get_me().username
-            # زر الكود في القناة يقوم بالنسخ الفوري داخل البوت بدون تحويل لحسابك
             markup_channel = InlineKeyboardMarkup(row_width=2)
             markup_channel.add(
                 InlineKeyboardButton(f"🔒 📋 {real_otp}", callback_data=f"copy_otp_{real_otp}")
