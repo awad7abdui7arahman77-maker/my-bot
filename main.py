@@ -242,6 +242,16 @@ def monitor_text_messages(message):
             bot.send_message(message.chat.id, "🔑 **قسم الباسوردات والأمان متاح عبر طلب الأرقام المباشرة من القائمة.**", parse_mode="Markdown")
         elif text in ["كود 2FA", "🔒 كود 2FA"]:
             bot.send_message(message.chat.id, "🔒 **قسم التحقق بخطوتين (2FA) متاح في القائمة الرئيسية.**", parse_mode="Markdown")
+        elif text in ["دعوة الأصدقاء", "👥 دعوة الأصدقاء"]:
+            bot_info = bot.get_me()
+            share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}?start=ref{user_id}&text=أفضل%20بوت%20أرقام%20وهمية%20مجانية!⚡"
+            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 إرسال رابط الدعوة", url=share_url))
+            bot.send_message(message.chat.id, "👥 **شارك رابط دعوتك مع أصدقائك واكسب النقاط والمميزات:**\n`https://t.me/" + bot_info.username + f"?start=ref{user_id}`", reply_markup=markup, parse_mode="Markdown")
+        elif text in ["رسالة إذاعة للمطور", "📢 رسالة إذاعة للمطور", "تواصل مع المطور"]:
+            markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مراسلة المطور", url=DEVELOPER_URL))
+            bot.send_message(message.chat.id, "💬 **لإرسال ملاحظة أو رسالة للمطور مباشرة:**", reply_markup=markup, parse_mode="Markdown")
+        elif text in ["استخراج ID", "🪪 استخراج ID"]:
+            bot.send_message(message.chat.id, f"🆔 **آيدي حسابك الشخصي:** `{user_id}`", parse_mode="Markdown")
         elif text == "⚡ لوحة المطور":
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
@@ -259,11 +269,14 @@ def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
         KeyboardButton("دول الأرقام"),
+        KeyboardButton("طلب رقم جديد"),
         KeyboardButton("حالة الخدمة"),
+        KeyboardButton("دعوة الأصدقاء"),
         KeyboardButton("تواصل مع المطور"),
+        KeyboardButton("رسالة إذاعة للمطور"),
         KeyboardButton("باسورد"),
         KeyboardButton("كود 2FA"),
-        KeyboardButton("طلب رقم جديد"),
+        KeyboardButton("استخراج ID"),
         KeyboardButton("⚡ لوحة المطور")
     )
     return markup
