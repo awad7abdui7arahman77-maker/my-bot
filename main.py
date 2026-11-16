@@ -230,29 +230,33 @@ def monitor_text_messages(message):
             )
             return
         
-        text = message.text
-        if text in ["دول الأرقام", "🌐 الدول والأرقام", "طلب رقم جديد"]:
+        text = message.text.strip() if message.text else ""
+        
+        # معالجة ذكية دقيقة تطابق أي شكل للأزرار (سواء مع إيموجي أو بدون)
+        if any(k in text for k in ["دول الأرقام", "الدول والأرقام"]):
             send_main_menu(message.chat.id)
-        elif text in ["حالة الخدمة", "💎 حالة الخدمة"]:
+        elif any(k in text for k in ["طلب رقم جديد", "رقم جديد"]):
+            send_main_menu(message.chat.id)
+        elif any(k in text for k in ["حالة الخدمة"]):
             bot.send_message(message.chat.id, "💎 **حالة الخدمة:** تعمل جميع شبكات Multi-API بكفاءة 100% ⚡", parse_mode="Markdown")
-        elif text in ["تواصل مع المطور", "🛒 تواصل مع المطور"]:
+        elif any(k in text for k in ["تواصل مع المطور"]):
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مالك البوت", url=DEVELOPER_URL))
             bot.send_message(message.chat.id, "💬 **للتواصل مع المطور:**", reply_markup=markup, parse_mode="Markdown")
-        elif text in ["باسورد", "🔑 باسورد"]:
+        elif any(k in text for k in ["باسورد"]):
             bot.send_message(message.chat.id, "🔑 **قسم الباسوردات والأمان متاح عبر طلب الأرقام المباشرة من القائمة.**", parse_mode="Markdown")
-        elif text in ["كود 2FA", "🔒 كود 2FA"]:
+        elif any(k in text for k in ["كود 2FA"]):
             bot.send_message(message.chat.id, "🔒 **قسم التحقق بخطوتين (2FA) متاح في القائمة الرئيسية.**", parse_mode="Markdown")
-        elif text in ["دعوة الأصدقاء", "👥 دعوة الأصدقاء"]:
+        elif any(k in text for k in ["دعوة الأصدقاء"]):
             bot_info = bot.get_me()
             share_url = f"https://t.me/share/url?url=https://t.me/{bot_info.username}?start=ref{user_id}&text=أفضل%20بوت%20أرقام%20وهمية%20مجانية!⚡"
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("🚀 إرسال رابط الدعوة", url=share_url))
-            bot.send_message(message.chat.id, "👥 **شارك رابط دعوتك مع أصدقائك واكسب النقاط والمميزات:**\n`https://t.me/" + bot_info.username + f"?start=ref{user_id}`", reply_markup=markup, parse_mode="Markdown")
-        elif text in ["رسالة إذاعة للمطور", "📢 رسالة إذاعة للمطور", "تواصل مع المطور"]:
+            bot.send_message(message.chat.id, f"👥 **شارك رابط دعوتك مع أصدقائك واكسب النقاط والمميزات:**\n`https://t.me/{bot_info.username}?start=ref{user_id}`", reply_markup=markup, parse_mode="Markdown")
+        elif any(k in text for k in ["رسالة إذاعة للمطور", "إذاعة للمطور"]):
             markup = InlineKeyboardMarkup().add(InlineKeyboardButton("👨‍💻 مراسلة المطور", url=DEVELOPER_URL))
             bot.send_message(message.chat.id, "💬 **لإرسال ملاحظة أو رسالة للمطور مباشرة:**", reply_markup=markup, parse_mode="Markdown")
-        elif text in ["استخراج ID", "🪪 استخراج ID"]:
+        elif any(k in text for k in ["استخراج ID", "آيدي"]):
             bot.send_message(message.chat.id, f"🆔 **آيدي حسابك الشخصي:** `{user_id}`", parse_mode="Markdown")
-        elif text == "⚡ لوحة المطور":
+        elif "لوحة المطور" in text:
             if user_id != ADMIN_ID:
                 return bot.send_message(message.chat.id, "❌ مخصص للمطور فقط.")
             
