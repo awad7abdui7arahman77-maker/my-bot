@@ -42,7 +42,7 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
-API_TOKEN = '8686242492:AAGkaEMiaBRLTgc1RR1lJibTsIpQaEn4mC4'
+API_TOKEN = '8686242492:AAH6ebQaVOAmhhG4iizZrTvZHycBbCCNtgk'  # التوكن الجديد الصحيح
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@hsbssvs776"  # قناتك الخاصة لنشر الأكواد والأرقام
 
@@ -278,7 +278,7 @@ def monitor_text_messages(message):
             )
             bot.send_message(ADMIN_ID, f"⚙️ **لوحة تحكم المطور:**\n👥 إجمالي المشتركين: `{users_count}` عضو.", reply_markup=markup_admin, parse_mode="Markdown")
 
-# --- 7. INTERFACE & MENUS (مطابق لنموذج البوت الاحترافي) ---
+# --- 7. INTERFACE & MENUS ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -297,7 +297,6 @@ def get_main_reply_keyboard():
 
 def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
-    # قائمة التطبيقات والخدمات المتاحة
     markup.add(
         InlineKeyboardButton("WhatsApp 🟢 (2)", callback_data="app_whatsapp"),
         InlineKeyboardButton("Telegram ✈️ (3)", callback_data="app_telegram"),
@@ -306,7 +305,6 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("Imo 🔵 (1)", callback_data="app_imo"),
         InlineKeyboardButton("TikTok 🎵 (1)", callback_data="app_tiktok")
     )
-    # قائمة الدول المتاحة
     markup.add(
         InlineKeyboardButton("Ethiopia 🇪🇹", callback_data="cnt_ethiopia"),
         InlineKeyboardButton("Guinea 🇬🇳", callback_data="cnt_guinea"),
