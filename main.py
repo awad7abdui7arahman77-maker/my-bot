@@ -42,7 +42,7 @@ def keep_alive():
     Thread(target=self_ping, daemon=True).start()
 
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
-API_TOKEN = '8686242492:AAFG_wz882SIWDPXQHiafimvzGrIL-aoaYg'  # التوكن الصحيح والمستخرج خصيصاً لبوتك
+API_TOKEN = '8686242492:AAEollsDH5GBBZK6kaK8BJJMQyTMiZalA-M'  # التوكن الجديد النظيف والمحدث من BotFather
 ADMIN_ID = 8388141188 
 CHANNEL_LOG_ID = "@hsbssvs776"  # قناتك الخاصة لنشر الأكواد والأرقام
 
