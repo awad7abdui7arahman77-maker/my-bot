@@ -44,9 +44,9 @@ def keep_alive():
 # --- 3. BOT CONFIGURATIONS & GLOBAL NETWORKS API ---
 API_TOKEN = '8686242492:AAGkaEMiaBRLTgc1RR1lJibTsIpQaEn4mC4'
 ADMIN_ID = 8388141188 
-CHANNEL_LOG_ID = "@hsbssvs776"  # معرف قناتك العام الصحيح للأكواد
+CHANNEL_LOG_ID = "@hsbssvs776"  # قناتك الخاصة لنشر الأكواد والأرقام
 
-# شبكات ومواقع الأرقام الوهمية العالمية
+# ضع مفاتيح الـ API الحقيقية هنا لربطها بشبكات الأرقام العالمية
 API_KEYS = {
     "5sim": "ضع_مفتاح_5sim_هنا",
     "sms_activate": "ضع_مفتاح_sms_activate_هنا",
@@ -63,7 +63,7 @@ except Exception:
 bot = telebot.TeleBot(API_TOKEN, threaded=False)
 DEVELOPER_URL = "https://t.me/awad3210"
 
-# قنوات الاشتراك الإجباري المحدثة بالكامل
+# قنوات الاشتراك الإجباري الإلزامية
 SUBSCRIPTION_CHANNELS = [
     {"id": "@breakthroughawad210", "name": "📢 قناة تعليم الاختراق وتوقيف الواتساب", "url": "https://t.me/breakthroughawad210"},
     {"id": "@hvvcvevw", "name": "📢 قناة المقنع للأرقام وجروب الدعم", "url": "https://t.me/hvvcvevw"},
@@ -73,11 +73,12 @@ SUBSCRIPTION_CHANNELS = [
 ]
 
 APPS_DATA = {
-    "facebook": {"name": "Facebook", "app_icon": "📘", "service": "facebook"},
-    "huawei": {"name": "Huawei", "app_icon": "📱", "service": "huawei"},
-    "instagram": {"name": "Instagram", "app_icon": "📸", "service": "instagram"},
     "whatsapp": {"name": "WhatsApp", "app_icon": "🟢", "service": "whatsapp"},
-    "x": {"name": "X", "app_icon": "❌", "service": "twitter"}
+    "telegram": {"name": "Telegram", "app_icon": "✈️", "service": "telegram"},
+    "instagram": {"name": "Instagram", "app_icon": "📸", "service": "instagram"},
+    "facebook": {"name": "Facebook", "app_icon": "📘", "service": "facebook"},
+    "imo": {"name": "Imo", "app_icon": "🔵", "service": "imo"},
+    "tiktok": {"name": "TikTok", "app_icon": "🎵", "service": "tiktok"}
 }
 
 COUNTRIES_DATA = {
@@ -87,7 +88,7 @@ COUNTRIES_DATA = {
     "madagascar": {"name": "Madagascar", "flag": "🇲🇬", "code": "261", "slug": "madagascar"},
     "mali": {"name": "Mali", "flag": "🇲🇱", "code": "223", "slug": "mali"},
     "slovenia": {"name": "Slovenia", "flag": "🇸🇮", "code": "386", "slug": "slovenia"},
-    "testall": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"},
+    "usa": {"name": "USA", "flag": "🇺🇸", "code": "1", "slug": "usa"},
     "venezuela": {"name": "Venezuela", "flag": "🇻🇪", "code": "58", "slug": "venezuela"}
 }
 
@@ -157,7 +158,7 @@ def buy_number_from_global_networks(country_slug, service_name):
             except Exception:
                 continue
 
-    # نظام المحاكاة الذكية السريع جداً
+    # محاكاة ذكية متكاملة في حال لم يتم ضبط مفاتيح الـ API لتوفير أرقام وأكواد فورية
     prefix_code = COUNTRIES_DATA.get(country_slug, {"code": "1"})["code"]
     phone_number = f"+{prefix_code}9{int(time.time() * 1000) % 90000000 + 10000000}"
     otp_code = f"{int(time.time()) % 900000 + 100000}"
@@ -277,7 +278,7 @@ def monitor_text_messages(message):
             )
             bot.send_message(ADMIN_ID, f"⚙️ **لوحة تحكم المطور:**\n👥 إجمالي المشتركين: `{users_count}` عضو.", reply_markup=markup_admin, parse_mode="Markdown")
 
-# --- 7. INTERFACE & MENUS ---
+# --- 7. INTERFACE & MENUS (مطابق لنموذج البوت الاحترافي) ---
 def get_main_reply_keyboard():
     markup = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
     markup.add(
@@ -296,13 +297,16 @@ def get_main_reply_keyboard():
 
 def send_main_menu(chat_id, message_id=None):
     markup = InlineKeyboardMarkup(row_width=2)
+    # قائمة التطبيقات والخدمات المتاحة
     markup.add(
-        InlineKeyboardButton("Facebook 📘 (3)", callback_data="app_facebook"),
-        InlineKeyboardButton("Huawei 📱 (1)", callback_data="app_huawei"),
-        InlineKeyboardButton("Instagram 📸 (2)", callback_data="app_instagram"),
         InlineKeyboardButton("WhatsApp 🟢 (2)", callback_data="app_whatsapp"),
-        InlineKeyboardButton("X ❌ (1)", callback_data="app_x")
+        InlineKeyboardButton("Telegram ✈️ (3)", callback_data="app_telegram"),
+        InlineKeyboardButton("Instagram 📸 (2)", callback_data="app_instagram"),
+        InlineKeyboardButton("Facebook 📘 (3)", callback_data="app_facebook"),
+        InlineKeyboardButton("Imo 🔵 (1)", callback_data="app_imo"),
+        InlineKeyboardButton("TikTok 🎵 (1)", callback_data="app_tiktok")
     )
+    # قائمة الدول المتاحة
     markup.add(
         InlineKeyboardButton("Ethiopia 🇪🇹", callback_data="cnt_ethiopia"),
         InlineKeyboardButton("Guinea 🇬🇳", callback_data="cnt_guinea"),
@@ -310,13 +314,13 @@ def send_main_menu(chat_id, message_id=None):
         InlineKeyboardButton("Madagascar 🇲🇬", callback_data="cnt_madagascar"),
         InlineKeyboardButton("Mali 🇲🇱", callback_data="cnt_mali"),
         InlineKeyboardButton("Slovenia 🇸🇮", callback_data="cnt_slovenia"),
-        InlineKeyboardButton("Test All 🔥", callback_data="cnt_testall"),
+        InlineKeyboardButton("USA 🇺🇸", callback_data="cnt_usa"),
         InlineKeyboardButton("Venezuela 🇻🇪 (7)", callback_data="cnt_venezuela")
     )
     
     welcome_text = (
-        "👋 **مرحباً بك يا صديقي في بوت الأرقام والحسابات!**\n"
-        "✅ اختر التطبيق أو الدولة من الأزرار بالأسفل للحصول على الرقم الفوري عبر شبكات Multi-API."
+        "👋 **مرحباً بك في بوت الأرقام والحسابات الرسمي!**\n\n"
+        "🌐 اختر التطبيق أو الدولة المطلوبة من الأزرار بالأسفل للحصول على الرقم الفوري عبر شبكات Multi-API بسرعة فائقة. ⚡"
     )
     try:
         if message_id:
@@ -368,20 +372,20 @@ def start(message):
 def handle_queries(call):
     user_id = call.from_user.id
     
-    # فحص الاشتراك الإجباري قبل تنفيذ أي زر
-    unsub = get_unsubscribed_channels(user_id)
-    if unsub and call.data != "verify_subs":
-        bot.answer_callback_query(call.id, "❌ يجب عليك الانضمام إلى كافة القنوات أولاً!", show_alert=True)
-        try:
-            bot.send_message(
-                call.message.chat.id, 
-                "⚠️ **عذراً، يجب عليك الانضمام إلى جميع القنوات التالية أولاً لاستخدام البوت:**", 
-                reply_markup=get_subscription_markup(user_id), 
-                parse_mode="Markdown"
-            )
-        except Exception:
-            pass
-        return
+    if call.data not in ["verify_subs", "back_home"]:
+        unsub = get_unsubscribed_channels(user_id)
+        if unsub:
+            bot.answer_callback_query(call.id, "❌ يجب عليك الانضمام إلى كافة القنوات أولاً!", show_alert=True)
+            try:
+                bot.send_message(
+                    call.message.chat.id, 
+                    "⚠️ **عذراً، يجب عليك الانضمام إلى جميع القنوات التالية أولاً لاستخدام البوت:**", 
+                    reply_markup=get_subscription_markup(user_id), 
+                    parse_mode="Markdown"
+                )
+            except Exception:
+                pass
+            return
 
     if call.data == "verify_subs":
         unsub = get_unsubscribed_channels(user_id)
@@ -428,13 +432,13 @@ def handle_queries(call):
             InlineKeyboardButton("Italy 🇮🇹", callback_data=f"getnum_{app_key}_italy"),
             InlineKeyboardButton("Venezuela 🇻🇪", callback_data=f"getnum_{app_key}_venezuela"),
             InlineKeyboardButton("Ethiopia 🇪🇹", callback_data=f"getnum_{app_key}_ethiopia"),
-            InlineKeyboardButton("Guinea 🇬🇳", callback_data=f"getnum_{app_key}_guinea")
+            InlineKeyboardButton("USA 🇺🇸", callback_data=f"getnum_{app_key}_usa")
         )
         markup.add(InlineKeyboardButton("رجوع 🔙", callback_data="back_home"))
         
         try:
             bot.edit_message_text(
-                f"📂 **{app_info['name']}**\n🌐 **اختر الدولة للطلب:**",
+                f"📂 **{app_info['app_icon']} {app_info['name']}**\n🌐 **اختر الدولة المطلوبة لطلب الرقم:**",
                 call.message.chat.id, call.message.message_id, reply_markup=markup, parse_mode="Markdown"
             )
         except Exception:
